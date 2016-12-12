@@ -20,6 +20,7 @@ public class ConnectionConfiguration {
         try {
             Class.forName("com.mysql.jdbc.Driver");
             connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/StudentInformation", "root","password");
+            System.out.println("hello");
         } catch (Exception e) {
             e.printStackTrace();
         }

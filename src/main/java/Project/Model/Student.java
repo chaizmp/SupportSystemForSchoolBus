@@ -1,48 +1,66 @@
 package Project.Model;
 
+import java.lang.reflect.Type;
 import java.util.ArrayList;
 import java.awt.image.BufferedImage;
 /**
+
  * Created by User on 28/8/2559.
  */
 public class Student extends Human {
-    private ClassRoom classRoom;
-    private Teacher teacher;
-    private ArrayList<Parent> parents;
-    private BufferedImage pic;
-
-    public Student(String id, String name, String surName, String telNum, String address, ClassRoom classRoom, Teacher teacher, ArrayList<Parent> parents) {
-        super(id, name, surName, telNum, address);
-        this.classRoom = classRoom;
-        this.teacher = teacher;
-        this.parents = parents;
-    }
-
+    private String pic;
+    private TypeOfService typeOfService;
+    private boolean isInBus;
+    private Human teacherOrParent;
+    private Bus bus;
     public Student(String id, String name, String surName, String telNum, String address) {
         super(id, name, surName, telNum, address);
     }
 
-    public ArrayList<Parent> getParents() {
-        return parents;
+    public Student(String id, String name, String surName, String telNum, String address, String pic, String typeOfService, boolean isInBus) {
+        super(id, name, surName, telNum, address);
+        this.pic = pic;
+        this.typeOfService = TypeOfService.valueOf(typeOfService);
+        this.isInBus = isInBus;
     }
 
-    public Teacher getTeacher() {
-        return teacher;
+    public boolean isInBus() {
+        return bus != null;
     }
 
-    public ClassRoom getClassRoom() {
-        return classRoom;
+    public String getPic() {
+        return pic;
     }
 
-    public void setClassRoom(ClassRoom classRoom) {
-        this.classRoom = classRoom;
+    public void setPic(String pic) {
+        this.pic = pic;
     }
 
-    public void setTeacher(Teacher teacher) {
-        this.teacher = teacher;
+    public TypeOfService getTypeOfService() {
+        return typeOfService;
     }
 
-    public void setParents(ArrayList<Parent> parents) {
-        this.parents = parents;
+    public void setTypeOfService(String typeOfService) {
+        this.typeOfService = TypeOfService.valueOf(typeOfService);
+    }
+
+    public Bus getBus() {
+        return bus;
+    }
+
+    public Human getTeacherOrParent() {
+        return teacherOrParent;
+    }
+
+    public void setBus(Bus bus) {
+        this.bus = bus;
+    }
+
+    public void setTeacherOrParent(Human teacherOrParent) {
+        this.teacherOrParent = teacherOrParent;
+    }
+
+    public void setTypeOfService(TypeOfService typeOfService) {
+        this.typeOfService = typeOfService;
     }
 }
