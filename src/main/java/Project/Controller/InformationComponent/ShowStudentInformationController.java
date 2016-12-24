@@ -1,5 +1,4 @@
-package Project.Controller.InformationSystem;
-import Project.Model.Bus;
+package Project.Controller.InformationComponent;
 import Project.Model.Student;
 import Project.PersistentLayer.*;
 import org.springframework.beans.factory.annotation.Autowired;

@@ -1,14 +1,11 @@
-package Project.Controller.InformationSystem;
+package Project.Controller.InformationComponent;
 
 import Project.Model.Driver;
-import Project.Model.Student;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestMethod;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseBody;
-
-import java.util.ArrayList;
 
 /**
  * Created by User on 29/8/2559.
