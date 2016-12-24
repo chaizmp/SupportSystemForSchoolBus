@@ -2,7 +2,9 @@
 <project version="4">
   <component name="ProjectModuleManager">
     <modules>
-      <module fileurl="file://$PROJECT_DIR$/SchoolBusSupportSystem.iml" filepath="$PROJECT_DIR$/SchoolBusSupportSystem.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/SchoolBusSupportSystem.iml" filepath="$PROJECT_DIR$/.idea/modules/SchoolBusSupportSystem.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/SchoolBusSupportSystem_main.iml" filepath="$PROJECT_DIR$/.idea/modules/SchoolBusSupportSystem_main.iml" group="SchoolBusSupportSystem" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/SchoolBusSupportSystem_test.iml" filepath="$PROJECT_DIR$/.idea/modules/SchoolBusSupportSystem_test.iml" group="SchoolBusSupportSystem" />
     </modules>
   </component>
 </project>
