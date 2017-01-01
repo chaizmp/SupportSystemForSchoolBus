@@ -1,11 +1,10 @@
 package Project.Controller;
 
-import Project.Handler.Information.StudentHandler;
-import Project.Model.Enumerator.TypeOfService;
 import Project.Model.Position.Bus;
 import Project.Model.Person.Driver;
 import Project.Model.Person.Student;
 import Project.Model.Person.Teacher;
+import Project.PersistentLayer.*;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.RequestMapping;
@@ -22,23 +21,23 @@ import java.util.ArrayList;
 public class InformationController {
 
     @Autowired
-    StudentHandler studentHandler;
+    ParentPersistent parPer;
+    @Autowired
+    TeacherPersistent teaPer;
+    @Autowired
+    StudentPersistent stuPer;
+    @Autowired
+    BusPersistent busPer;
+    @Autowired
+    DriverPersistent driPer;
 
-    @RequestMapping(value = "setTypeOfService", method = RequestMethod.POST)
-    public @ResponseBody
-    boolean setTypeOfService (@RequestParam(value = "typeOfService") TypeOfService typeOfService,
-                              @RequestParam(value = "personSId") String personSId
-    )
-    {
-        return studentHandler.setTypeOfService(typeOfService,personSId);
-    }
     @RequestMapping(value = "getTeacher", method = RequestMethod.POST)
     public @ResponseBody
     Teacher getTeacher( // method body not yet finished
             @RequestParam(value = "studentId") String studentId
     )
     {
-        return null;
+        return new Teacher("1","1","1","1","1","1");
     }
 
     @RequestMapping(value = "showDriverDetail", method = RequestMethod.POST)
@@ -51,8 +50,8 @@ public class InformationController {
         // and Bus where they are  ( with button to show the drivers)
 
     }
-
-   /* @RequestMapping(value = "getAllStudentInformation", method = RequestMethod.POST)
+    
+    @RequestMapping(value = "getAllStudentInformation", method = RequestMethod.POST)
     public @ResponseBody
     ArrayList<Student> getAllStudent( // method body not yet finished
                                       @RequestParam(value = "id") String id //teacher or parent
@@ -79,7 +78,7 @@ public class InformationController {
         }
         return stuList; // returns all students, their teacher (if id is from parent) / their parent (if id is from  teacher)
         // and Bus where they are  ( with button to show the drivers)
-    } */
+    }
 
     @RequestMapping(value = "getBusDetail", method = RequestMethod.POST)
     public @ResponseBody
