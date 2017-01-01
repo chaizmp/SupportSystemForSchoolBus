@@ -15,7 +15,7 @@ public class ShowDriverDetailController {
     @RequestMapping(value = "showDriverDetail", method = RequestMethod.POST)
     public @ResponseBody
     Driver showDriverDetail( // method body not yet finished
-                                      @RequestParam(value = "carNumber") String carNumber //teacher or parent
+    @RequestParam(value = "carNumber") String carNumber //teacher or parent
     )
     {
         return null; // returns all students, their teacher (if id is from parent) / their parent (if id is from  teacher)
