@@ -1,8 +1,11 @@
 package Project.Model.Person;
 
 import Project.Model.Enumerator.Role;
+import Project.Model.Position.Address;
 
 import java.awt.*;
+import java.lang.reflect.Array;
+import java.util.ArrayList;
 
 /**
  * Created by User on 1/1/2560.
@@ -17,8 +20,9 @@ public class Person {
     private String firstName;
     private String surName;
     private String faceBookId;
+    private ArrayList<Address> addresses;
 
-    public Person(Role role, String id, Image pic, String token, String tel, String user, String firstName, String surName, String faceBookId) {
+    public Person(Role role, String id, Image pic, String token, String tel, String user, String firstName, String surName, String faceBookId,ArrayList<Address> addresses) {
         this.role = role;
         this.id = id;
         this.pic = pic;
@@ -28,6 +32,7 @@ public class Person {
         this.firstName = firstName;
         this.surName = surName;
         this.faceBookId = faceBookId;
+        this.addresses = addresses;
     }
 
     public Role getRole() {
@@ -101,4 +106,8 @@ public class Person {
     public void setFaceBookId(String faceBookId) {
         this.faceBookId = faceBookId;
     }
+
+    public void setAddresses(ArrayList<Address> addresses) {this.addresses = addresses;}
+
+    public ArrayList<Address> getAddresses() {return addresses;}
 }

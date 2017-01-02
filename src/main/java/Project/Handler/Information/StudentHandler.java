@@ -1,32 +1,46 @@
 package Project.Handler.Information;
 
+import Project.Model.Enumerator.Role;
 import Project.Model.Enumerator.TypeOfService;
+import Project.Model.Person.Student;
+import Project.Persistent.SQL.PersonPersistent;
+import Project.Persistent.SQL.StudentPersistent;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
 
-import javax.sql.DataSource;
+import java.util.ArrayList;
+import java.util.Calendar;
+
 
 /**
  * Created by User on 1/1/2560.
  */
 @Service
-public class StudentHandler extends JdbcTemplate{
+public class StudentHandler{
 
     @Autowired
-    public StudentHandler(DataSource mainDataSource) {
-        super();
-        this.setDataSource(mainDataSource);
-    }
+    StudentPersistent studentPersistent;
+    @Autowired
+    PersonPersistent personPersistent;
 
-    public boolean setTypeOfService(TypeOfService typeOfService,String personSId)
+    public boolean setTypeOfService(TypeOfService typeOfService,String personId)
     {
-        boolean result = false;
-        try {
-            update("UPDATE `STUDENT` SET `typeOfService`= ? WHERE `personId` = ?",typeOfService.name(),personSId);
-        } catch (Exception e) {
-            e.printStackTrace();
+        return studentPersistent.setTypeOfService(typeOfService,personId);
+    }
+    public ArrayList<Student> getAllStudentByPersonId(String personId)
+    {
+        ArrayList<Student> students = null;
+        switch (studentPersistent.getRoleByPersonId(personId)){
+            case TEACHER:       students = studentPersistent.getAllStudentByTeacherId(personId, ""+Calendar.getInstance().get(Calendar.YEAR));
+                                break;
+            case PARENT:        students = studentPersistent.getAllStudentByParentId(personId);
+                                break;
+            case SCHOOLOFFICER: students = studentPersistent.getAllStudent();
+            default:            break;
         }
-        return result;
+        for(Student it: students){
+            it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
+        }
+        return students;
     }
 }

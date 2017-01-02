@@ -1,5 +1,7 @@
 package Project.Model.Position;
 
+import Project.Model.Person.Person;
+
 import java.util.ArrayList;
 
 /**
@@ -11,13 +13,16 @@ public class Bus {
     private int checkPointPassed;
     private double currentLatitude;
     private double currentLongitude;
+    private Route currentRoute;
 
-    public Bus(String carNumber, double avgVelocity, int checkPointPassed, double currentLatitude, double currentLongitude) {
+
+    public Bus(String carNumber, double avgVelocity, int checkPointPassed, double currentLatitude, double currentLongitude, Route currentRoute) {
         this.carNumber = carNumber;
         this.avgVelocity = avgVelocity;
         this.checkPointPassed = checkPointPassed;
         this.currentLatitude = currentLatitude;
         this.currentLongitude = currentLongitude;
+        this.currentRoute = currentRoute;
     }
 
     public String getCarNumber() {
@@ -59,4 +64,8 @@ public class Bus {
     public void setCurrentLongitude(double currentLongitude) {
         this.currentLongitude = currentLongitude;
     }
+
+    public void setCurrentRoute(Route currentRoute) {this.currentRoute = currentRoute;}
+
+    public Route setCurrentRoute() {return currentRoute;}
 }
