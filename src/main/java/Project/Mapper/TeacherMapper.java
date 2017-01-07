@@ -10,7 +10,7 @@ import java.sql.SQLException;
 /**
  * Created by User on 2/1/2560.
  */
-public class TeacherMapper implements RowMapper<Teacher> {
+public class TeacherMapper  implements RowMapper<Teacher> {
 
     @Override
     public Teacher mapRow(ResultSet rs,int rowNum) throws SQLException

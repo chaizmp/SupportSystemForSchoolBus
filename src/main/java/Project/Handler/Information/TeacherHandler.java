@@ -6,6 +6,7 @@ import Project.Persistent.SQL.TeacherPersistent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -27,5 +28,10 @@ public class TeacherHandler {
             it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
         }
         return teachers;
+    }
+
+    public ArrayList<Teacher> getCurrentTeacherInBusByCarNumber(String carNumber,ArrayList<Timestamp> startAndEndPeriod)
+    {
+        return teacherPersistent.getCurrentTeachersInBusByCarNumber(carNumber,startAndEndPeriod);
     }
 }

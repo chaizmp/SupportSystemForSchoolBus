@@ -1,7 +1,6 @@
 package Project.Persistent.SQL;
 
 import Project.Mapper.AddressMapper;
-import Project.Model.Person.Person;
 import Project.Model.Position.Address;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -25,7 +24,7 @@ public class PersonPersistent extends JdbcTemplate {
 
     public ArrayList<Address> getPersonAddressesByPersonId(String personId){
         List<Address> addressList =  query("SELECT * FROM PersonAddress,AddressDetail WHERE PersonAddress.latitude = AddressDetail.latitude " +
-                "and PersonAddress.longitude = AddressDetail.longitude and PersonAddress.personId ="+personId,new AddressMapper());
+                "and PersonAddress.longitude = AddressDetail.longitude and PersonAddress.personId = ?",new AddressMapper(),personId);
         return new ArrayList<>(addressList);
     }
 }

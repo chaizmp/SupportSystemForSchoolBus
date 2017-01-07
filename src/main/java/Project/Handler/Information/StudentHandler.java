@@ -8,6 +8,7 @@ import Project.Persistent.SQL.StudentPersistent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+
 import java.util.ArrayList;
 import java.util.Calendar;
 
@@ -30,17 +31,25 @@ public class StudentHandler{
     public ArrayList<Student> getAllStudentByPersonId(String personId)
     {
         ArrayList<Student> students = null;
-        switch (studentPersistent.getRoleByPersonId(personId)){
-            case TEACHER:       students = studentPersistent.getAllStudentByTeacherId(personId, ""+Calendar.getInstance().get(Calendar.YEAR));
-                                break;
-            case PARENT:        students = studentPersistent.getAllStudentByParentId(personId);
-                                break;
-            case SCHOOLOFFICER: students = studentPersistent.getAllStudent();
-            default:            break;
-        }
-        for(Student it: students){
-            it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
+        Role role = studentPersistent.getRoleByPersonId(personId);
+        if(role != null) {
+            switch (role) {
+                case TEACHER:
+                    students = studentPersistent.getAllStudentByTeacherId(personId, "" + (Calendar.getInstance().get(Calendar.YEAR)- 543));
+                    break;
+                case PARENT:
+                    students = studentPersistent.getAllStudentByParentId(personId);
+                    break;
+                case SCHOOLOFFICER:
+                    students = studentPersistent.getAllStudent();
+                default:
+                    break;
+            }
+            for (Student it : students) {
+                it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
+            }
         }
         return students;
     }
+
 }

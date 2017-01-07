@@ -1,6 +1,8 @@
 package Project.Model.Position;
 
-import java.sql.Date;
+import Project.Model.Enumerator.Status;
+
+import java.sql.Timestamp;
 
 /**
  * Created by User on 1/1/2560.
@@ -8,14 +10,14 @@ import java.sql.Date;
 public class Position {
     private double latitude;
     private double longitude;
-    private boolean isPark;
-    private Date time;
+    private Status status;
+    private Timestamp timestamp;
 
-    public Position(double latitude, double longitude, boolean isPark, Date time) {
+    public Position(double latitude, double longitude, Status status, Timestamp timestamp) {
         this.latitude = latitude;
         this.longitude = longitude;
-        this.isPark = isPark;
-        this.time = time;
+        this.status = status;
+        this.timestamp = timestamp;
     }
 
     public double getLatitude() {
@@ -34,19 +36,19 @@ public class Position {
         this.longitude = longitude;
     }
 
-    public boolean isPark() {
-        return isPark;
+    public Status getStatus() {
+        return status;
     }
 
-    public void setPark(boolean park) {
-        isPark = park;
+    public void setStatus(Status status) {
+        this.status = status;
     }
 
-    public Date getTime() {
-        return time;
+    public Timestamp getTimestamp() {
+        return timestamp;
     }
 
-    public void setTime(Date time) {
-        this.time = time;
+    public void setTime(Timestamp timestamp) {
+        this.timestamp = timestamp;
     }
 }

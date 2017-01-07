@@ -1,30 +1,26 @@
 package Project.Controller;
 
-import Project.Handler.Information.BusHandler;
-import Project.Handler.Information.ParentHandler;
-import Project.Handler.Information.StudentHandler;
-import Project.Handler.Information.TeacherHandler;
+import Project.Handler.Information.*;
+import Project.Handler.JSON.ObjectToJSON;
+import Project.Handler.Position.PositionHandler;
 import Project.Model.Enumerator.TypeOfService;
 import Project.Model.Person.Parent;
 import Project.Model.Person.Student;
-import Project.Model.Position.Bus;
 import Project.Model.Person.Driver;
 import Project.Model.Person.Teacher;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import Project.Model.Position.Bus;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Controller;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestMethod;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.ResponseBody;
+import org.springframework.web.bind.annotation.*;
 
+import java.sql.Timestamp;
 import java.util.ArrayList;
 
 
 /**
  * Created by User on 29/8/2559.
  */
-@Controller
+@RestController
 public class InformationController {
 
     @Autowired
@@ -35,6 +31,12 @@ public class InformationController {
     ParentHandler parentHandler;
     @Autowired
     BusHandler busHandler;
+    @Autowired
+    DriverHandler driverHandler;
+    @Autowired
+    ObjectToJSON objectToJSON;
+    @Autowired
+    PositionHandler positionHandler;
 
     @RequestMapping(value = "setTypeOfService", method = RequestMethod.POST)
     public @ResponseBody
@@ -85,12 +87,21 @@ public class InformationController {
 
     @RequestMapping(value = "getBusDetail", method = RequestMethod.POST)
     public @ResponseBody
-    String getBusDetail( //body not yet finished
+    String getBusDetail(
                       @RequestParam(value = "personId") String personId
     )
     {
-
-    return null;
-
+        Bus bus = busHandler.getCurrentBusCarNumberByStudentId(personId); //latest time in the log
+        ArrayList<Timestamp> startAndEndPeriod = positionHandler.getCurrentStartAndEndPeriodByStudentId(bus.getCarNumber(),personId);
+        ArrayList<Teacher> teachers = teacherHandler.getCurrentTeacherInBusByCarNumber(bus.getCarNumber(),startAndEndPeriod); // between that trip
+        Driver driver = driverHandler.getCurrentDriverInBusByCarNumber(bus.getCarNumber(),startAndEndPeriod); //there is always one driver
+        JSONObject busJSON = objectToJSON.mapToJSON("bus",bus);
+        JSONObject teachersJSON = objectToJSON.arrayListToJSON("teachers",teachers);
+        JSONObject driverJSON = objectToJSON.mapToJSON("driver",driver);
+        JSONObject result = objectToJSON.mergeJSONObjects(busJSON,teachersJSON,driverJSON);
+        if(result != null) {
+            return result.toString();
+        }
+        return null;
     }
 }

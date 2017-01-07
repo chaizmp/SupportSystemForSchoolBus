@@ -25,6 +25,16 @@ public class Bus {
         this.currentRoute = currentRoute;
     }
 
+    public Bus(String carNumber){
+        this.carNumber = carNumber;
+    }
+
+    public Bus(String carNumber, double currentLatitude, double currentLongitude){
+        this.carNumber = carNumber;
+        this.currentLatitude = currentLatitude;
+        this.currentLongitude = currentLongitude;
+    }
+
     public String getCarNumber() {
         return carNumber;
     }
@@ -68,4 +78,6 @@ public class Bus {
     public void setCurrentRoute(Route currentRoute) {this.currentRoute = currentRoute;}
 
     public Route setCurrentRoute() {return currentRoute;}
+
+    public Route getCurrentRoute() {return currentRoute;}
 }
