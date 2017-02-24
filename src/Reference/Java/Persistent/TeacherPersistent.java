@@ -21,41 +21,34 @@ public class TeacherPersistent extends JdbcTemplate {
         this.setDataSource(mainDataSource);
     }
 
-    public void addTeacher(String id, String name, String surName, String telNum, String address,ClassRoomName classRoomName) {
-        update("INSERT INTO student(`id`, `name`,'surName','telNum','address','classRoomName') VALUES (?,?,?,?,?,?)",new Object[]{id,name,surName,telNum,address,classRoomName}); // not yet completed
+    public void addTeacher(String id, String name, String surName, String telNum, String address, ClassRoomName classRoomName) {
+        update("INSERT INTO student(`id`, `name`,'surName','telNum','address','classRoomName') VALUES (?,?,?,?,?,?)", new Object[]{id, name, surName, telNum, address, classRoomName}); // not yet completed
     }
 
-    public boolean teacherIsExist(String id)
-    {
-        if(queryForObject("SELECT count(*) from Teacher WHERE teacherId = ?", Integer.class, id) == 1)
-        {
+    public boolean teacherIsExist(String id) {
+        if (queryForObject("SELECT count(*) from Teacher WHERE teacherId = ?", Integer.class, id) == 1) {
             return true;
         }
         return false;
     }
 
-    public Teacher getTeacherByCarNum(String carNum)
-    {
-        List<Teacher> teaList = query("SELECT * FROM teacher where teacherId = (SELECT teacherId FROM BusAndTeacher WHERE time = (SELECT MAX(time) FROM BusAndTeacher WHERE carNumber = '"+carNum+"'))"
-                ,new TeacherMapper());
+    public Teacher getTeacherByCarNum(String carNum) {
+        List<Teacher> teaList = query("SELECT * FROM teacher where teacherId = (SELECT teacherId FROM BusAndTeacher WHERE time = (SELECT MAX(time) FROM BusAndTeacher WHERE carNumber = '" + carNum + "'))"
+                , new TeacherMapper());
         Teacher teacher = null;
-        for(Teacher it : teaList)
-        {
-            if(it != null)
-            {
+        for (Teacher it : teaList) {
+            if (it != null) {
                 teacher = it;
             }
         }
         return teacher;
     }
-    public Teacher getTeacherByStudentId(String id)
-    {
-        List<Teacher> teaList = query("SELECT * FROM TEACHER WHERE teacherId = (SELECT teacherId FROM STUDENT  WHERE studentId =  '"+id+"')",new TeacherMapper());
+
+    public Teacher getTeacherByStudentId(String id) {
+        List<Teacher> teaList = query("SELECT * FROM TEACHER WHERE teacherId = (SELECT teacherId FROM STUDENT  WHERE studentId =  '" + id + "')", new TeacherMapper());
         Teacher teacher = null;
-        for(Teacher it : teaList)
-        {
-            if(it != null)
-            {
+        for (Teacher it : teaList) {
+            if (it != null) {
                 teacher = it;
             }
         }

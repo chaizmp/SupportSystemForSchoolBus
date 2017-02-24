@@ -1,7 +1,6 @@
 package Project.Handler.Information;
 
 import Project.Model.Person.Parent;
-import Project.Model.Position.Address;
 import Project.Persistent.SQL.ParentPersistent;
 import Project.Persistent.SQL.PersonPersistent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,10 +18,9 @@ public class ParentHandler {
     @Autowired
     PersonPersistent personPersistent;
 
-    public ArrayList<Parent> getParentsByStudentId(String personId)
-    {
+    public ArrayList<Parent> getParentsByStudentId(String personId) {
         ArrayList<Parent> parents = parentPersistent.getParentsByStudentId(personId);
-        for(Parent it: parents){
+        for (Parent it : parents) {
             it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
         }
         return parents;

@@ -14,31 +14,28 @@ import java.util.List;
  * Created by User on 2/9/2559.
  */
 @Service
-public class BusPersistent extends JdbcTemplate{
+public class BusPersistent extends JdbcTemplate {
     @Autowired
     TeacherPersistent teaPer;
     @Autowired
     DriverPersistent driPer;
+
     @Autowired
     public BusPersistent(DataSource mainDataSource) {
         super();
         this.setDataSource(mainDataSource);
     }
 
-    public Bus getBusByStudentId(String id)
-    {
+    public Bus getBusByStudentId(String id) {
         Bus bus = null;
-        List<Bus> busList = query("SELECT carNumber FROM BusAndStudent WHERE time = (SELECT MAX(time) FROM BusAndStudent WHERE studentId = '"+id+"')"
-                ,new BusMapper()); // the latest time
-        for(Bus it :busList)
-        {
-            if(it != null)
-            {
+        List<Bus> busList = query("SELECT carNumber FROM BusAndStudent WHERE time = (SELECT MAX(time) FROM BusAndStudent WHERE studentId = '" + id + "')"
+                , new BusMapper()); // the latest time
+        for (Bus it : busList) {
+            if (it != null) {
                 bus = it;
             }
         }
-        if(bus != null)
-        {
+        if (bus != null) {
             String carNum = bus.getCarNumber();
             bus.setTeacher(teaPer.getTeacherByCarNum(carNum));
             bus.setDriver(driPer.getDriverByCarNum(carNum));
@@ -48,21 +45,17 @@ public class BusPersistent extends JdbcTemplate{
         }
         return bus;
     }
-    public ArrayList<Integer>[] getPositionByCarNum(String carNum)
-    {
+
+    public ArrayList<Integer>[] getPositionByCarNum(String carNum) {
         return null;
     }
 
-    public ArrayList<Float> getVelocityFromCarNum(String carNum)
-    {
+    public ArrayList<Float> getVelocityFromCarNum(String carNum) {
         return null;
     }
 
 
-
-
-    public Bus getBusByTeacherId()
-    {
+    public Bus getBusByTeacherId() {
         return null;
     }
 }

@@ -21,18 +21,16 @@ public class TeacherHandler {
     @Autowired
     PersonPersistent personPersistent;
 
-    public ArrayList<Teacher> getTeachersByStudentId(String personId)
-    {
-       ArrayList<Teacher> teachers = teacherPersistent.getTeachersByStudentId(personId,""+ Calendar.getInstance().get(Calendar.YEAR));
-        for(Teacher it: teachers){
+    public ArrayList<Teacher> getTeachersByStudentId(String personId) {
+        ArrayList<Teacher> teachers = teacherPersistent.getTeachersByStudentId(personId, "" + Calendar.getInstance().get(Calendar.YEAR));
+        for (Teacher it : teachers) {
             it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
         }
         return teachers;
     }
 
-    public ArrayList<Teacher> getCurrentTeacherInBusByCarNumber(String carNumber,ArrayList<Timestamp> startAndEndPeriod)
-    {
-        return teacherPersistent.getCurrentTeachersInBusByCarNumber(carNumber,startAndEndPeriod);
+    public ArrayList<Teacher> getCurrentTeacherInBusByCarNumber(String carNumber, ArrayList<Timestamp> startAndEndPeriod) {
+        return teacherPersistent.getCurrentTeachersInBusByCarNumber(carNumber, startAndEndPeriod);
     }
 
     public ArrayList<Teacher> getCurrentAllTeacherByCarNumber(String carNumber) {

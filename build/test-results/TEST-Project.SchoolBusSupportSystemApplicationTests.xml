@@ -1,8 +1,9 @@
 <?xml version="1.0" encoding="UTF-8"?>
-<testsuite name="Project.SchoolBusSupportSystemApplicationTests" tests="1" skipped="0" failures="0" errors="0" timestamp="2017-02-22T10:35:47" hostname="U5NI8XI4FTNION8" time="0.22">
-  <properties/>
-  <testcase name="contextLoads" classname="Project.SchoolBusSupportSystemApplicationTests" time="0.22"/>
-  <system-out><![CDATA[17:35:42.071 [Test worker] DEBUG org.springframework.test.context.junit4.SpringJUnit4ClassRunner - SpringJUnit4ClassRunner constructor called with [class Project.SchoolBusSupportSystemApplicationTests]
+<testsuite name="Project.SchoolBusSupportSystemApplicationTests" tests="1" skipped="0" failures="0" errors="0"
+           timestamp="2017-02-22T10:35:47" hostname="U5NI8XI4FTNION8" time="0.22">
+    <properties/>
+    <testcase name="contextLoads" classname="Project.SchoolBusSupportSystemApplicationTests" time="0.22"/>
+    <system-out><![CDATA[17:35:42.071 [Test worker] DEBUG org.springframework.test.context.junit4.SpringJUnit4ClassRunner - SpringJUnit4ClassRunner constructor called with [class Project.SchoolBusSupportSystemApplicationTests]
 17:35:42.077 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils - Instantiating CacheAwareContextLoaderDelegate from class [org.springframework.test.context.cache.DefaultCacheAwareContextLoaderDelegate]
 17:35:42.087 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils - Instantiating BootstrapContext using constructor [public org.springframework.test.context.support.DefaultBootstrapContext(java.lang.Class,org.springframework.test.context.CacheAwareContextLoaderDelegate)]
 17:35:42.113 [Test worker] DEBUG org.springframework.test.context.BootstrapUtils - Instantiating TestContextBootstrapper for test class [Project.SchoolBusSupportSystemApplicationTests] from class [org.springframework.boot.test.context.SpringBootTestContextBootstrapper]
@@ -93,5 +94,5 @@
 2017-02-22 17:35:47.125  INFO 33484 --- [    Test worker] o.s.b.a.e.mvc.EndpointHandlerMapping     : Mapped "{[/beans || /beans.json],methods=[GET],produces=[application/json]}" onto public java.lang.Object org.springframework.boot.actuate.endpoint.mvc.EndpointMvcAdapter.invoke()
 2017-02-22 17:35:47.455  INFO 33484 --- [    Test worker] P.SchoolBusSupportSystemApplicationTests : Started SchoolBusSupportSystemApplicationTests in 5.021 seconds (JVM running for 6.146)
 ]]></system-out>
-  <system-err><![CDATA[]]></system-err>
+    <system-err><![CDATA[]]></system-err>
 </testsuite>

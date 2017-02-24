@@ -11,29 +11,31 @@ import org.springframework.web.bind.annotation.ResponseBody;
 public class PositionController {
 
     @RequestMapping(value = "getBusPosition", method = RequestMethod.POST)
-    public @ResponseBody
+    public
+    @ResponseBody
     String getBusPositionl( //body not yet finished return as JSON String format
                             @RequestParam(value = "carNumber") String carNumber
-    )
-    {
+    ) {
         return "hello";
     }
 
     @RequestMapping(value = "timeEstimation", method = RequestMethod.POST)
-    public @ResponseBody // return type and body not yet finished
+    public
+    @ResponseBody
+        // return type and body not yet finished
     String timeEstimation(
             @RequestParam(value = "carNumber") String carNumber
-    )
-    {
+    ) {
         return "hello";
     }
 
     @RequestMapping(value = "getRoute", method = RequestMethod.POST)
-    public @ResponseBody // return type and body not yet finished
+    public
+    @ResponseBody
+        // return type and body not yet finished
     String getRoute( //get all possible route to the student's home or the school
                      @RequestParam(value = "studentId") String studentId
-    )
-    {
+    ) {
         return "hello";
     }
 }

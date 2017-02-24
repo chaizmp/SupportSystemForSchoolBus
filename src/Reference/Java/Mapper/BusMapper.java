@@ -11,8 +11,7 @@ import java.sql.SQLException;
  */
 public class BusMapper implements RowMapper<Bus> {
     @Override
-    public Bus mapRow(ResultSet rs,int rowNum) throws SQLException
-    {
+    public Bus mapRow(ResultSet rs, int rowNum) throws SQLException {
         return new Bus(rs.getString(1));
     }
 

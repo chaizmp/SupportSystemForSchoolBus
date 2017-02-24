@@ -13,23 +13,19 @@ import java.util.List;
  * Created by User on 2/9/2559.
  */
 @Service
-public class DriverPersistent extends JdbcTemplate{
+public class DriverPersistent extends JdbcTemplate {
     @Autowired
-    public DriverPersistent(DataSource mainDataSource)
-    {
+    public DriverPersistent(DataSource mainDataSource) {
         super();
         this.setDataSource(mainDataSource);
     }
 
-    public Driver getDriverByCarNum(String carNum)
-    {
-        List<Driver> driList = query("SELECT * FROM Driver where driverId = (SELECT driverId FROM BusAndDriver WHERE time = (SELECT MAX(time) FROM BusAndDriver WHERE carNumber = '"+carNum+"'))"
-                ,new DriverMapper());
+    public Driver getDriverByCarNum(String carNum) {
+        List<Driver> driList = query("SELECT * FROM Driver where driverId = (SELECT driverId FROM BusAndDriver WHERE time = (SELECT MAX(time) FROM BusAndDriver WHERE carNumber = '" + carNum + "'))"
+                , new DriverMapper());
         Driver driver = null;
-        for(Driver it : driList)
-        {
-            if(it != null)
-            {
+        for (Driver it : driList) {
+            if (it != null) {
                 driver = it;
             }
         }

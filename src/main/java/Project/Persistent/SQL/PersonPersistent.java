@@ -42,9 +42,9 @@ public class PersonPersistent extends JdbcTemplate {
         return queryForObject("SELECT token From Person where personId = ?", String.class, personId);
     }
 
-    public ArrayList<Person> getPersonsRelatedToStudent(String personId){
+    public ArrayList<Person> getPersonsRelatedToStudent(String personId) {
         List<Person> teacherList = query("SELECT * from person, teachHistory WHERE person.personId = teachHistory.personTid " +
-                "AND personSId = ? AND year = ?", new PersonMapper(), personId, ""+ Calendar.getInstance().get(Calendar.YEAR) );
+                "AND personSId = ? AND year = ?", new PersonMapper(), personId, "" + Calendar.getInstance().get(Calendar.YEAR));
         List<Person> parentList = query("SELECT * from person, family WHERE person.personId = family.personPid AND personSid = ?", new PersonMapper(), personId);
         List<Person> personList = new ArrayList<>();
         personList.addAll(teacherList);

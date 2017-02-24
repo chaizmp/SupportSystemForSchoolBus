@@ -19,7 +19,7 @@ public class ConnectionConfiguration {
         Connection connection = null;
         try {
             Class.forName("com.mysql.jdbc.Driver");
-            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SupportSystemForSchoolBus", "root","password");
+            connection = DriverManager.getConnection("jdbc:mysql://localhost:3306/SupportSystemForSchoolBus", "root", "password");
             System.out.println("hello");
         } catch (Exception e) {
             e.printStackTrace();

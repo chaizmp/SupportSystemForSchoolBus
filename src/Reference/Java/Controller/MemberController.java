@@ -12,23 +12,25 @@ import org.springframework.web.bind.annotation.ResponseBody;
 @Controller
 public class MemberController {
 
-    @RequestMapping(value = "signOnWithFb" , method = RequestMethod.POST)
-    public @ResponseBody // return type and method body not yet finished
+    @RequestMapping(value = "signOnWithFb", method = RequestMethod.POST)
+    public
+    @ResponseBody
+        // return type and method body not yet finished
     String signOnWithFacebook
     (
             @RequestParam(value = "facebookId") String faceBookId
-    )
-    {
+    ) {
         return new String("hehe");
     }
 
     @RequestMapping(value = "register", method = RequestMethod.POST)
-    public @ResponseBody // return type and param list and body not yet finished
+    public
+    @ResponseBody
+        // return type and param list and body not yet finished
     String register
     (
             @RequestParam(value = "userName") String userName
-    )
-    {
+    ) {
         return new String("hehehe");
     }
 

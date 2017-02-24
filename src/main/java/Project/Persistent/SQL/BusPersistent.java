@@ -63,7 +63,18 @@ public class BusPersistent extends JdbcTemplate {
                 new Bus(rs.getString("carNumber"), rs.getDouble("averageVelocity"), rs.getInt("checkPointPassed"))));
     }
 
-    public boolean setVelocityToZero(String carNumber){
+    public boolean setVelocityToZero(String carNumber) {
         return update("UPDATE bus SET averageVelocity = 0, checkPointPassed = 0 WHERE carNumber = ?", carNumber) == 1;
+    }
+    public boolean setVelocity(String carNumber, double averageVelocity, int checkPointPassed){
+        return true;
+    }
+
+    public double getAverageVelocity(String carNumber){
+        return queryForObject("SELECT averageVelocity FROM bus WHERE carNumber = ?", Double.class, carNumber);
+    }
+
+    public int getCheckPointPassed(String carNumber){
+        return queryForObject("SELECT checkPointPassed FROM bus WHERE carNumber = ?", Integer.class, carNumber);
     }
 }

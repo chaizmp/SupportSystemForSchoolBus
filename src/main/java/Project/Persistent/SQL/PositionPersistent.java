@@ -192,7 +192,7 @@ public class PositionPersistent extends JdbcTemplate {
                     "AND personId NOT IN (SELECT personId FROM person WHERE personId = ? OR role = ?) " +
                     "AND COUNT(*) -1 = (SELECT COUNT(*)-1 FROM student WHERE typeOfService = ? OR typeOfService = ?)", carNumber, IsInBus.NO.name(), lunch, midNight, personId, Role.DRIVER.name(), TypeOfService.BOTH.name(), TypeOfService.GO.name()).next();
         } else
-            return !queryForRowSet("SELECT * FROM PersonInBus P1 "+
+            return !queryForRowSet("SELECT * FROM PersonInBus P1 " +
                     "HAVING COUNT(*) -1 = (SELECT COUNT(*) - 1 FROM student WHERE typeOfService = ? OR typeOfService = ?)" +
                     "AND carNumber = ? " +
                     "AND isInBus = ? " +
@@ -214,11 +214,10 @@ public class PositionPersistent extends JdbcTemplate {
                         "AND atTime >= ? " +
                         "AND atTime <= ? " +
                         "AND personId = ? )", Integer.class, personId, carNumber, midNight, lunch, personId);
-            }catch(Exception e) {
+            } catch (Exception e) {
                 return -1;
             }
-        }
-        else {
+        } else {
             try {
                 return queryForObject("SELECT enterTime from personInBus WHERE " +
                         "personId = ? " +
@@ -226,10 +225,11 @@ public class PositionPersistent extends JdbcTemplate {
                         "AND atTime >= ? " +
                         "AND atTime >= ? " +
                         "AND personId = ? )", Integer.class, personId, carNumber, midNight, lunch, personId);
-            }catch(Exception e) {
+            } catch (Exception e) {
                 return -1;
             }
         }
 
     }
+
 }

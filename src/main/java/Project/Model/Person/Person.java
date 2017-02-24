@@ -3,7 +3,6 @@ package Project.Model.Person;
 import Project.Model.Enumerator.Role;
 import Project.Model.Position.Address;
 
-
 import java.awt.*;
 import java.util.ArrayList;
 
@@ -22,7 +21,7 @@ public class Person {
     private String faceBookId;
     private ArrayList<Address> addresses;
 
-    public Person(Role role, String id, Image pic, String token, String tel, String user, String firstName, String surName, String faceBookId,ArrayList<Address> addresses) {
+    public Person(Role role, String id, Image pic, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<Address> addresses) {
         this.role = role;
         this.id = id;
         this.pic = pic;
@@ -107,7 +106,11 @@ public class Person {
         this.faceBookId = faceBookId;
     }
 
-    public void setAddresses(ArrayList<Address> addresses) {this.addresses = addresses;}
+    public void setAddresses(ArrayList<Address> addresses) {
+        this.addresses = addresses;
+    }
 
-    public ArrayList<Address> getAddresses() {return addresses;}
+    public ArrayList<Address> getAddresses() {
+        return addresses;
+    }
 }

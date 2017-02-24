@@ -1,9 +1,5 @@
 package Project.Model.Position;
 
-import Project.Model.Person.Person;
-
-import java.util.ArrayList;
-
 /**
  * Created by User on 28/8/2559.
  */
@@ -25,17 +21,17 @@ public class Bus {
         this.currentRoute = currentRoute;
     }
 
-    public Bus(String carNumber, double avgVelocity, int checkPointPassed){
+    public Bus(String carNumber, double avgVelocity, int checkPointPassed) {
         this.carNumber = carNumber;
         this.avgVelocity = avgVelocity;
         this.checkPointPassed = checkPointPassed;
     }
 
-    public Bus(String carNumber){
+    public Bus(String carNumber) {
         this.carNumber = carNumber;
     }
 
-    public Bus(String carNumber, double currentLatitude, double currentLongitude){
+    public Bus(String carNumber, double currentLatitude, double currentLongitude) {
         this.carNumber = carNumber;
         this.currentLatitude = currentLatitude;
         this.currentLongitude = currentLongitude;
@@ -81,9 +77,15 @@ public class Bus {
         this.currentLongitude = currentLongitude;
     }
 
-    public void setCurrentRoute(Route currentRoute) {this.currentRoute = currentRoute;}
+    public void setCurrentRoute(Route currentRoute) {
+        this.currentRoute = currentRoute;
+    }
 
-    public Route setCurrentRoute() {return currentRoute;}
+    public Route setCurrentRoute() {
+        return currentRoute;
+    }
 
-    public Route getCurrentRoute() {return currentRoute;}
+    public Route getCurrentRoute() {
+        return currentRoute;
+    }
 }

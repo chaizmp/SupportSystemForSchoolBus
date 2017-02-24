@@ -16,15 +16,16 @@ public class PersonHandler {
     PersonPersistent personPersistent;
     @Autowired
     TeacherHandler teacherHandler;
-    public Boolean updateFireBaseToken(String personId, String token){
+
+    public Boolean updateFireBaseToken(String personId, String token) {
         return personPersistent.updateFireBaseToken(personId, token);
     }
 
-    public String getPersonToken(String personId){
+    public String getPersonToken(String personId) {
         return personPersistent.getPersonToken(personId);
     }
 
-    public ArrayList<Person> getPersonsRelatedToStudent(String personId){
+    public ArrayList<Person> getPersonsRelatedToStudent(String personId) {
         return personPersistent.getPersonsRelatedToStudent(personId);
 
     }

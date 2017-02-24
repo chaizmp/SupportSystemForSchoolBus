@@ -103,20 +103,19 @@ public class StudentPersistent extends JdbcTemplate {
         return new ArrayList<>(studentList);
     }
 
-    public int getNumberOfStudentInCurrentTrip(TypeOfService typeOfService){
+    public int getNumberOfStudentInCurrentTrip(TypeOfService typeOfService) {
         return queryForObject("SELECT COUNT(*) FROM student WHERE typeOfService = ? OR typeOfService = ?", Integer.class, typeOfService.name(), TypeOfService.BOTH.name());
     }
 
-    public int getNumberOfStudentGetOutInCurrentTripExceptPersonId(String personId, String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight){
-        if(now.getTime() <= lunch.getTime()) {
+    public int getNumberOfStudentGetOutInCurrentTripExceptPersonId(String personId, String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight) {
+        if (now.getTime() <= lunch.getTime()) {
             return queryForObject("SELECT COUNT(*) FROM personInBus WHERE personId != ? " +
                     "AND atTime <= ? " +
                     "AND atTime >= ? " +
                     "AND carNumber = ? " +
                     "AND isInBus = ? " +
                     "AND personId NOT IN ( SELECT personId FROM person WHERE role != ? ) ", Integer.class, personId, lunch, midNight, carNumber, IsInBus.NO.name(), Role.STUDENT.name());
-        }
-        else{
+        } else {
             return queryForObject("SELECT COUNT(*) FROM personInBus WHERE personId != ? " +
                     "AND atTime >= ? " +
                     "AND atTime >= ? " +

@@ -16,7 +16,7 @@ public class DriverHandler {
     @Autowired
     DriverPersistent driverPersistent;
 
-    public Driver getCurrentDriverInBusByCarNumber(String carNumber,ArrayList<Timestamp> startAndEndPeriod){
-        return driverPersistent.getCurrentDriverInBusByCarNumber(carNumber,startAndEndPeriod);
+    public Driver getCurrentDriverInBusByCarNumber(String carNumber, ArrayList<Timestamp> startAndEndPeriod) {
+        return driverPersistent.getCurrentDriverInBusByCarNumber(carNumber, startAndEndPeriod);
     }
 }

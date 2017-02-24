@@ -9,18 +9,18 @@ import java.util.ArrayList;
 /**
  * Created by User on 28/8/2559.
  */
-public class Teacher extends Person{
+public class Teacher extends Person {
     private boolean inBus;
 
     public Teacher(Role role, String id, Image pic, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<Address> address) {
         super(role, id, pic, token, tel, user, firstName, surName, faceBookId, address);
     }
 
-    public boolean inBus(){
+    public boolean inBus() {
         return this.inBus;
     }
 
-    public void setIsInBus(boolean inBus){
+    public void setIsInBus(boolean inBus) {
         this.inBus = inBus;
     }
 }

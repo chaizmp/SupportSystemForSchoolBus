@@ -1,7 +1,6 @@
 package Project.Handler.ApiCalls;
 
 import Project.Model.Notification.NotificationMessage;
-import org.springframework.http.converter.json.GsonFactoryBean;
 import org.springframework.stereotype.Service;
 import retrofit2.Call;
 import retrofit2.Response;
@@ -20,7 +19,8 @@ import java.util.List;
 @Service
 public class ApiCall {
 
-public FireBaseService fireBaseService;
+    public FireBaseService fireBaseService;
+
     interface FireBaseService {
         @Headers({
                 "Authorizationt: application/vnd.github.v3.full+json",
@@ -29,7 +29,8 @@ public FireBaseService fireBaseService;
         @POST("/fcm/send")
         Call<List<String>> sendNotification(@Body NotificationMessage notificationMessage);
     }
-    public ApiCall(){
+
+    public ApiCall() {
         Retrofit retrofit = new Retrofit.Builder()
                 .baseUrl("https://fcm.googleapis.com/")
                 .addConverterFactory(GsonConverterFactory.create())
@@ -37,41 +38,39 @@ public FireBaseService fireBaseService;
         fireBaseService = retrofit.create(FireBaseService.class);
     }
 
-    public String sendGetOnOrOffNotificationToPersons(NotificationMessage notificationMessage){
+    public String sendGetOnOrOffNotificationToPersons(NotificationMessage notificationMessage) {
         Call<List<String>> call = fireBaseService.sendNotification(notificationMessage);
         try {
             Response<List<String>> response = call.execute();
             if (response.isSuccessful()) {
                 System.out.println(response.body().get(0));
                 return response.body().get(0);
-            }
-            else {
+            } else {
                 System.out.println("cannot get sale order : " + response.errorBody().string());
             }
-        }
-        catch (IOException e) {
+        } catch (IOException e) {
             System.out.println("cannot get sale order : " + e.getLocalizedMessage());
         }
         return null;
     }
 
-    public boolean homeArrivalNotification(){
+    public boolean homeArrivalNotification() {
         return true;
     }
 
-    public boolean schoolArrivalNotification(){
+    public boolean schoolArrivalNotification() {
         return true;
     }
 
-    public boolean broadcastNotification(){
+    public boolean broadcastNotification() {
         return true;
     }
 
-    public boolean otherPersonNotification(){
+    public boolean otherPersonNotification() {
         return true;
     }
 
-    public boolean alarmNotification(){
+    public boolean alarmNotification() {
         return true;
     }
 }

@@ -13,10 +13,9 @@ import java.sql.SQLException;
 public class DriverMapper implements RowMapper<Driver> {
 
     @Override
-    public Driver mapRow(ResultSet rs, int rowNum) throws SQLException
-    {
-        return new Driver(Role.valueOf(rs.getString("role")),rs.getString("personId"),null,rs.getString("token"),rs.getString("tel"),
-                rs.getString("username"),rs.getString("name"),rs.getString("surName"),rs.getString("facebookId"), null);
+    public Driver mapRow(ResultSet rs, int rowNum) throws SQLException {
+        return new Driver(Role.valueOf(rs.getString("role")), rs.getString("personId"), null, rs.getString("token"), rs.getString("tel"),
+                rs.getString("username"), rs.getString("name"), rs.getString("surName"), rs.getString("facebookId"), null);
     }
 
 }

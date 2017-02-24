@@ -21,25 +21,21 @@ public class ParentPersistent extends JdbcTemplate {
     }
 
     public void addParent(String id, String name, String surName, String telNum, String address) {
-        update("INSERT INTO student(`id`, `name`,'surName','telNum','address') VALUES (?,?,?,?,?)",new Object[]{id,name,surName,telNum,address}); // not yet completed
+        update("INSERT INTO student(`id`, `name`,'surName','telNum','address') VALUES (?,?,?,?,?)", new Object[]{id, name, surName, telNum, address}); // not yet completed
     }
 
-    public boolean parentIsExist(String id)
-    {
-        if(queryForObject("SELECT count(*) from Parent WHERE parentId = ?", Integer.class, id) == 1)
-        {
+    public boolean parentIsExist(String id) {
+        if (queryForObject("SELECT count(*) from Parent WHERE parentId = ?", Integer.class, id) == 1) {
             return true;
         }
         return false;
     }
-    public Parent getParentByStudentId(String id)
-    {
-        List<Parent> parList = query("SELECT * FROM PARENT WHERE parentId = (SELECT parentId FROM FAMILY  WHERE studentId =  '"+id+"')",new ParentMapper());
+
+    public Parent getParentByStudentId(String id) {
+        List<Parent> parList = query("SELECT * FROM PARENT WHERE parentId = (SELECT parentId FROM FAMILY  WHERE studentId =  '" + id + "')", new ParentMapper());
         Parent parent = null;
-        for(Parent it : parList)
-        {
-            if(it != null)
-            {
+        for (Parent it : parList) {
+            if (it != null) {
                 parent = it;
             }
         }

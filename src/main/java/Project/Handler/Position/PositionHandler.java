@@ -14,7 +14,6 @@ import Project.Model.Person.Student;
 import Project.Model.Position.Bus;
 import Project.Model.Position.Position;
 import Project.Model.Position.Route;
-import Project.Persistent.SQL.BusPersistent;
 import Project.Persistent.SQL.PositionPersistent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -138,10 +137,10 @@ public class PositionHandler {
         // don't forget that bus driver isn't the last person. we count only the students.
         IsInBus isInBus = positionPersistent.isInBus(personId);
         String onOrOff = "OFF";
-        if(isInBus == IsInBus.NO){
+        if (isInBus == IsInBus.NO) {
             onOrOff = "ON";
             isInBus = IsInBus.YES;
-        }else{
+        } else {
             isInBus = IsInBus.NO;
         }
         Student student = studentHandler.getStudentByPersonId(personId);
@@ -159,12 +158,12 @@ public class PositionHandler {
         Timestamp midNight = new Timestamp(c.getTimeInMillis());
         if (positionPersistent.isFirstPerson(carNumber, now, time, midNight)) {
             status = Status.PERSONSTART;
-            positionPersistent.addBusPosition(carNumber,latitude,longitude, status);
+            positionPersistent.addBusPosition(carNumber, latitude, longitude, status);
             status = Status.START;
             // can be the driver
         } else if (isInBus == IsInBus.NO && isLastPerson(personId, carNumber, now, time, midNight)) {
             status = Status.FINISH;
-            positionPersistent.addBusPosition(carNumber,latitude,longitude, status);
+            positionPersistent.addBusPosition(carNumber, latitude, longitude, status);
             busHandler.setVelocityToZero(carNumber);
             // the last student not the driver
         } else {
@@ -172,7 +171,7 @@ public class PositionHandler {
         }
         int enterTime = positionPersistent.latestEnterTime(personId, carNumber, now, time, midNight) + 1;
         positionPersistent.getOnOrOffBus(carNumber, personId, latitude, longitude, isInBus, status, enterTime);
-        for(Person it: userRelatedToStudent) {
+        for (Person it : userRelatedToStudent) {
             NotificationMessage notificationMessage = new NotificationMessage();
             NotificationForm notificationForm = new NotificationForm();
             notificationForm.setTitle("Support System For School Bus");
@@ -184,20 +183,36 @@ public class PositionHandler {
         return isInBus != IsInBus.YES;
     }
 
-    public boolean isLastPerson(String personId, String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight){
+    public boolean isLastPerson(String personId, String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight) {
         TypeOfService typeOfService;
-        if(now.getTime() >= lunch.getTime()){
+        if (now.getTime() >= lunch.getTime()) {
             typeOfService = TypeOfService.BACK;
-        }
-        else{
+        } else {
             typeOfService = TypeOfService.GO;
         }
         int studentNumber = studentHandler.getNumberOfStudentInCurrentTrip(typeOfService);
         int studentNotInCarNumber = studentHandler.getNumberOfStudentGetOutInCurrentTripExceptPersonId(personId, carNumber, now, lunch, midNight);
-        return studentNumber-1 == studentNotInCarNumber;
+        return studentNumber - 1 == studentNotInCarNumber;
     }
 
-    public void calculateVelocity(String carNumber){
+    public void setVelocity(String carNumber, double previousLatitude, double previousLongitude, double newLatitude, double newLongitude) {
+        double oldAverageVelocity = busHandler.getAverageVelocity(carNumber);
+        int checkPointPassed = busHandler.getCheckPointPassed(carNumber);
+        double averageVelocity = getAverageVelocity(oldAverageVelocity,checkPointPassed, previousLatitude, previousLongitude, newLatitude, newLongitude);
+        busHandler.setVelocity(carNumber, averageVelocity, checkPointPassed);
+    }
 
+    public double getAverageVelocity(double oldAverageVelocity, int checkPointPassed, double previousLatitude, double previousLongitude, double newLatitude, double newLongitude){
+        return (oldAverageVelocity*(checkPointPassed-1)+haverSineDistance(previousLatitude, previousLongitude, newLatitude, newLongitude))/checkPointPassed;
+    }
+
+    public double haverSineDistance(double previousLatitude, double previousLongitude, double currentLatitude, double currentLongitude){
+        int earthRadius = 6378137;
+        double deltaLat = previousLatitude-currentLatitude;
+        double deltaLon = previousLongitude-currentLongitude;
+        double a = Math.sin(deltaLat/2)* Math.sin(deltaLat/2)+Math.cos(previousLatitude)*Math.cos(currentLatitude)*Math.sin(deltaLon/2)*Math.sin(deltaLon/2);
+        double c =2* Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+        double d = earthRadius*c;
+        return d;
     }
 }
