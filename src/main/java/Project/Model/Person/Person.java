@@ -3,8 +3,8 @@ package Project.Model.Person;
 import Project.Model.Enumerator.Role;
 import Project.Model.Position.Address;
 
+
 import java.awt.*;
-import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 /**

@@ -34,4 +34,8 @@ public class TeacherHandler {
     {
         return teacherPersistent.getCurrentTeachersInBusByCarNumber(carNumber,startAndEndPeriod);
     }
+
+    public ArrayList<Teacher> getCurrentAllTeacherByCarNumber(String carNumber) {
+        return teacherPersistent.getCurrentAllTeacherByCarNumber(carNumber);
+    }
 }

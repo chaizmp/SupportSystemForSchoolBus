@@ -23,7 +23,7 @@ public class MemberController {
     public @ResponseBody // return type and param list and body not yet finished
     String register
     (
-            @RequestParam(value = "userName") String userName
+            @RequestParam(value = "userName", required = false) String userName
     )
     {
         return new String("hehehe");

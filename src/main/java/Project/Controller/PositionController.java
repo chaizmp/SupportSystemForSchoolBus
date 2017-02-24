@@ -6,6 +6,7 @@ import Project.Handler.Position.PositionHandler;
 import Project.Model.Enumerator.Status;
 import Project.Model.Position.Bus;
 import Project.Model.Position.Position;
+import Project.Model.Position.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -46,7 +47,7 @@ public class PositionController {
     }
 
     @RequestMapping(value = "getCurrentRoute", method = RequestMethod.POST)
-    public @ResponseBody // return type and body not yet finished
+    public @ResponseBody
     ArrayList<Position> getCurrentRoute( //get all possible route to the student's home or the school
                                   @RequestParam(value = "personId") String personId
     )
@@ -59,23 +60,78 @@ public class PositionController {
     @RequestMapping(value = "addBusPosition", method = RequestMethod.POST)
     public @ResponseBody // return type and body not yet finished
     boolean addBusPosition( //get all possible route to the student's home or the school
-                            @RequestParam(value = "carNumber") String personId,
-                            @RequestParam(value = "latitude") float latitude,
-                            @RequestParam(value = "longitude") float longitude,
+                            @RequestParam(value = "carNumber") String carNumber,
+                            @RequestParam(value = "latitude") double latitude,
+                            @RequestParam(value = "longitude") double longitude,
                             @RequestParam(value = "status") Status status
                             )
     {
-        return positionHandler.addBusPosition(personId,latitude,longitude,status);
+        boolean result =  positionHandler.addBusPosition(carNumber,latitude,longitude,status);
+        positionHandler.calculateVelocity(carNumber);
+        return result;
     }
 
-
-    @RequestMapping(value = "addRoute", method = RequestMethod.POST)
+    @RequestMapping(value = "getOnOrOffBus", method = RequestMethod.POST)
     public @ResponseBody // return type and body not yet finished
     boolean addBusPosition( //get all possible route to the student's home or the school
-                            @RequestParam(value = "latitudes") List<Float> latitudes,
-                            @RequestParam(value = "longitudes") List<Float> longitudes
+                            @RequestParam(value = "carNumber") String carNumber,
+                            @RequestParam(value = "personId") String personId,
+                            @RequestParam(value = "latitude") double latitude,
+                            @RequestParam(value = "longitude") double longitude
     )
     {
-        return positionHandler.addRoute(new ArrayList<>(latitudes),new ArrayList<>(longitudes));
+        return positionHandler.getOnOrOffBus(carNumber, personId, latitude, longitude);
+    }
+
+    @RequestMapping(value = "addRoute", method = RequestMethod.POST)
+    public @ResponseBody
+    Integer addRoute(
+                            @RequestParam(value = "latitudes") ArrayList<Double> latitudes,
+                            @RequestParam(value = "longitudes") ArrayList<Double> longitudes
+    )
+    {
+        return positionHandler.addRoute(latitudes,longitudes);
+    }
+
+    @RequestMapping(value = "getAllBusRoute", method = RequestMethod.POST)
+    public @ResponseBody
+    ArrayList<Route> getAllBusRoute()
+    {
+        return positionHandler.getAllBusRoute();
+    }
+
+    @RequestMapping(value = "deleteRoute", method = RequestMethod.POST)
+    public @ResponseBody
+    boolean deleteRoute(
+            @RequestParam(value = "routeNumber") int routeNumber
+    )
+    {
+        return positionHandler.deleteRoute(routeNumber);
+    }
+
+    @RequestMapping(value = "getAllCurrentBusPosition", method = RequestMethod.POST)
+    public @ResponseBody
+    ArrayList<Bus> getAllCurrentBusPosition(
+
+    ){
+        return positionHandler.getAllCurrentBusPosition();
+    }
+
+    @RequestMapping(value= "setBusRoute", method = RequestMethod.POST)
+    public @ResponseBody
+    boolean setBusRoute(
+            @RequestParam(value = "carNumber") String carNumber,
+            @RequestParam(value = "routeNumber") int routeNumber
+    ){
+        return positionHandler.setBusRoute(carNumber,routeNumber);
+    }
+
+    @RequestMapping(value= "calculateSpeed", method = RequestMethod.POST)
+    public @ResponseBody
+    boolean setBusRoute(
+            @RequestParam(value = "carNumber") String carNumber
+    ){
+        //return positionHandler.calculateSpeed(carNumber);
+        return true;
     }
 }

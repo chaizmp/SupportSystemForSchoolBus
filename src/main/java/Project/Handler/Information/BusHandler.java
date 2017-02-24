@@ -7,6 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
+import java.util.ArrayList;
 
 /**
  * Created by User on 2/1/2560.
@@ -33,6 +34,13 @@ public class BusHandler {
     }
     public Bus getCurrentBusPosition(String carNumber){
         return busPersistent.getCurrentBusPosition(carNumber);
+    }
+
+    public boolean setVelocityToZero(String carNumber){
+        return busPersistent.setVelocityToZero(carNumber);
+    }
+    public ArrayList<Bus> getAllBus(){
+        return busPersistent.getAllBus();
     }
 }
 

@@ -16,6 +16,10 @@ public class Route {
         this.longitudes = longitudes;
     }
 
+    public Route() {
+
+    }
+
     public int getRouteNumber() {
         return routeNumber;
     }

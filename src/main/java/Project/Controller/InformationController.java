@@ -37,6 +37,8 @@ public class InformationController {
     ObjectToJSON objectToJSON;
     @Autowired
     PositionHandler positionHandler;
+    @Autowired
+    PersonHandler personHandler;
 
     @RequestMapping(value = "setTypeOfService", method = RequestMethod.POST)
     public @ResponseBody
@@ -49,7 +51,7 @@ public class InformationController {
 
     @RequestMapping(value = "getTeachers", method = RequestMethod.POST)
     public @ResponseBody
-    ArrayList<Teacher> getTeachers( // method body not yet finished
+    ArrayList<Teacher> getTeachers(
             @RequestParam(value = "personId") String personId
     )
     {
@@ -76,13 +78,39 @@ public class InformationController {
 
     }
 
-    @RequestMapping(value = "getAllStudentInformation", method = RequestMethod.POST)
+        @RequestMapping(value = "getAllStudentInformation", method = RequestMethod.POST)
     public @ResponseBody
-    ArrayList<Student> getAllStudent( // method body not yet finished
+    ArrayList<Student> getAllStudent(
                                       @RequestParam(value = "personId") String personId //teacher or parent
     )
     {
         return studentHandler.getAllStudentByPersonId(personId);
+    }
+
+    @RequestMapping(value = "getStudentInformation", method = RequestMethod.POST)
+    public @ResponseBody
+    Student getStudent(
+            @RequestParam(value = "personId") String personId //personId of a student
+    )
+    {
+        return studentHandler.getStudentByPersonId(personId);
+    }
+
+    @RequestMapping(value = "getAllPassengerInformation", method = RequestMethod.POST)
+    public @ResponseBody
+    String getPassenger(
+            @RequestParam(value = "carNumber") String carNumber //personId of a driver
+    )
+    {
+        ArrayList<Student> students = studentHandler.getCurrentAllStudentByCarNumber(carNumber);
+        ArrayList<Teacher> teachers = teacherHandler.getCurrentAllTeacherByCarNumber(carNumber);
+        JSONObject studentsJSON = objectToJSON.arrayListToJSON("students", students);
+        JSONObject teachersJSON = objectToJSON.arrayListToJSON("teachers", teachers);
+        JSONObject result = objectToJSON.mergeJSONObjects(studentsJSON,teachersJSON);
+        if(result != null) {
+            return result.toString();
+        }
+        return null;
     }
 
     @RequestMapping(value = "getBusDetail", method = RequestMethod.POST)
@@ -104,4 +132,14 @@ public class InformationController {
         }
         return null;
     }
+
+    @RequestMapping(value = "updateFireBaseToken", method = RequestMethod.POST)
+    public @ResponseBody
+    Boolean updateFireBaseToken(
+                            @RequestParam(value = "personId") String personId,
+                            @RequestParam(value = "token") String token
+    ){
+        return personHandler.updateFireBaseToken(personId,token);
+    }
+
 }

@@ -16,5 +16,4 @@ public class BusMapper implements RowMapper<Bus> {
         return new Bus(rs.getString("carNumber"));
     }
 
-
 }

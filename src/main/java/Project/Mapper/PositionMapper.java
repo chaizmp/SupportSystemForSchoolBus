@@ -12,6 +12,6 @@ import java.sql.SQLException;
  */
 public class PositionMapper implements RowMapper<Position> {
     public Position mapRow(ResultSet rs, int rowNum) throws SQLException{
-        return new Position(rs.getFloat("latitude"),rs.getFloat("longitude"), Status.valueOf(rs.getString("status")),rs.getTimestamp("atTime"));
+        return new Position(rs.getDouble("latitude"),rs.getDouble("longitude"), Status.valueOf(rs.getString("status")),rs.getTimestamp("atTime"));
     }
 }

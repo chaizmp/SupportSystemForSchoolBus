@@ -20,6 +20,11 @@ public class Position {
         this.timestamp = timestamp;
     }
 
+    public Position(double latitude, double longitude) {
+        this.latitude = latitude;
+        this.longitude = longitude;
+    }
+
     public double getLatitude() {
         return latitude;
     }

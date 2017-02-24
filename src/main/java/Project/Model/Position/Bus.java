@@ -25,6 +25,12 @@ public class Bus {
         this.currentRoute = currentRoute;
     }
 
+    public Bus(String carNumber, double avgVelocity, int checkPointPassed){
+        this.carNumber = carNumber;
+        this.avgVelocity = avgVelocity;
+        this.checkPointPassed = checkPointPassed;
+    }
+
     public Bus(String carNumber){
         this.carNumber = carNumber;
     }

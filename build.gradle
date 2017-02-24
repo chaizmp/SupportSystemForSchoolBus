@@ -13,6 +13,7 @@ buildscript {
 apply plugin: 'java'
 apply plugin: 'eclipse'
 apply plugin: 'spring-boot'
+apply plugin: 'idea'
 
 jar {
 	baseName = 'demo'
@@ -30,8 +31,14 @@ dependencies {
 	compile('org.springframework.boot:spring-boot-starter-actuator')
 	compile('org.springframework.boot:spring-boot-starter-jdbc')
 	compile('org.springframework.boot:spring-boot-starter-web')
+	compile('org.json:json:20140107')
+	compile('com.squareup.retrofit2:retrofit:2.2.0')
+    compile 'com.squareup.retrofit2:converter-gson:2.0.0-beta4'
+    //compile('com.squareup.retrofit2:converter-scalars')
+    compile('org.projectlombok:lombok:1.16.6')
 	runtime('mysql:mysql-connector-java')
 	testCompile('org.springframework.boot:spring-boot-starter-test')
+
 }
 
 
