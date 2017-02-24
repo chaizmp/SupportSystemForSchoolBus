@@ -64,10 +64,10 @@ public class BusPersistent extends JdbcTemplate {
     }
 
     public boolean setVelocityToZero(String carNumber) {
-        return update("UPDATE bus SET averageVelocity = 0, checkPointPassed = 0 WHERE carNumber = ?", carNumber) == 1;
+        return update("UPDATE bus SET averageVelocity = 0, checkPointPassed = 0 WHERE carNumber = ? ", carNumber) == 1;
     }
-    public boolean setVelocity(String carNumber, double averageVelocity, int checkPointPassed){
-        return true;
+    public boolean setVelocityAndCheckPointPassed(String carNumber, double averageVelocity, int checkPointPassed){
+        return update("UPDATE bus SET averageVelocity = ?, checkPointPassed = ? WHERE carNumber = ? ", averageVelocity, checkPointPassed, carNumber) == 1;
     }
 
     public double getAverageVelocity(String carNumber){

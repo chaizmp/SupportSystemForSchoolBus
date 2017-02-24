@@ -197,9 +197,9 @@ public class PositionHandler {
 
     public void setVelocity(String carNumber, double previousLatitude, double previousLongitude, double newLatitude, double newLongitude) {
         double oldAverageVelocity = busHandler.getAverageVelocity(carNumber);
-        int checkPointPassed = busHandler.getCheckPointPassed(carNumber);
+        int checkPointPassed = busHandler.getCheckPointPassed(carNumber)+1;
         double averageVelocity = getAverageVelocity(oldAverageVelocity,checkPointPassed, previousLatitude, previousLongitude, newLatitude, newLongitude);
-        busHandler.setVelocity(carNumber, averageVelocity, checkPointPassed);
+        busHandler.setVelocityAndCheckPointPassed(carNumber, averageVelocity, checkPointPassed);
     }
 
     public double getAverageVelocity(double oldAverageVelocity, int checkPointPassed, double previousLatitude, double previousLongitude, double newLatitude, double newLongitude){

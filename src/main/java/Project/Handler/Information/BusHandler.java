@@ -45,10 +45,9 @@ public class BusHandler {
         return busPersistent.getAllBus();
     }
 
-    public boolean setVelocity(String carNumber, double averageVelocity, int checkPointPassed){
-        return busPersistent.setVelocity(carNumber, averageVelocity, checkPointPassed);
+    public boolean setVelocityAndCheckPointPassed(String carNumber, double averageVelocity, int checkPointPassed){
+        return busPersistent.setVelocityAndCheckPointPassed(carNumber, averageVelocity, checkPointPassed);
     }
-
     public double getAverageVelocity(String carNumber){
         return busPersistent.getAverageVelocity(carNumber);
     }
