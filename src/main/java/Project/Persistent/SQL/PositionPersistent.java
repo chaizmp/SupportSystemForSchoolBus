@@ -33,7 +33,7 @@ public class PositionPersistent extends JdbcTemplate {
         Timestamp atTime;
         try {
             atTime = queryForObject("SELECT MAX(atTime) FROM PersonInBus " +
-                    "WHERE personId = ? LIMIT 1", Timestamp.class, personId);
+                    "WHERE personId = ?", Timestamp.class, personId);
         } catch (Exception e) {
             atTime = null;
         }
@@ -145,8 +145,10 @@ public class PositionPersistent extends JdbcTemplate {
     public IsInBus isInBus(String personId) {
         IsInBus result;
         try {
-            result = IsInBus.valueOf(queryForObject("SELECT isInBus FROM PersonInBus WHERE atTime = (" +
-                    "SELECT MAX(atTime) FROM PersonInBus WHERE personId = ?)", String.class, personId));
+            result = IsInBus.valueOf(queryForObject("SELECT isInBus FROM PersonInBus WHERE enterTime = (SELECT MAX(enterTime) FROM PersonInBus WHERE personId = ? " +
+                    "AND atTime = ( SELECT MAX(atTime) FROM PersonInBus WHERE personId = ?))" +
+                    "AND atTime = (" +
+                    "SELECT MAX(atTime) FROM PersonInBus WHERE personId = ?) ", String.class, personId, personId, personId));
             return result;
         } catch (Exception e) {
             e.printStackTrace();
