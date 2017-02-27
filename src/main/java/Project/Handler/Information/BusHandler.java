@@ -1,6 +1,8 @@
 package Project.Handler.Information;
 
+import Project.Handler.Position.PositionHandler;
 import Project.Model.Position.Bus;
+import Project.Model.Position.Route;
 import Project.Persistent.SQL.BusPersistent;
 import Project.Persistent.SQL.StudentPersistent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -20,6 +22,9 @@ public class BusHandler {
 
     @Autowired
     StudentPersistent studentPersistent;
+
+    @Autowired
+    PositionHandler positionHandler;
 
     public Bus getCurrentBusCarNumberByStudentId(String personId) {
         return busPersistent.getCurrentBusCarNumberByStudentId(personId);
@@ -53,6 +58,9 @@ public class BusHandler {
     }
     public int getCheckPointPassed(String carNumber){
         return busPersistent.getCheckPointPassed(carNumber);
+    }
+    public Route getBusCurrentRoute(String carNumber){
+        return positionHandler.getBusCurrentRoute(carNumber);
     }
 }
 

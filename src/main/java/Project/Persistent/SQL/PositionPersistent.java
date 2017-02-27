@@ -1,10 +1,7 @@
 package Project.Persistent.SQL;
 
 import Project.Mapper.PositionMapper;
-import Project.Model.Enumerator.IsInBus;
-import Project.Model.Enumerator.Role;
-import Project.Model.Enumerator.Status;
-import Project.Model.Enumerator.TypeOfService;
+import Project.Model.Enumerator.*;
 import Project.Model.Position.Position;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -117,11 +114,11 @@ public class PositionPersistent extends JdbcTemplate {
         }
     }
 
-    public Integer addRoute(ArrayList<Double> latitudes, ArrayList<Double> longitudes) {
+    public Integer addRoute(ArrayList<Double> latitudes, ArrayList<Double> longitudes, Type type) {
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         update(connection ->
-                        connection.prepareStatement("INSERT INTO ROUTE(routeNumber) VALUES(null) ", new String[]{"id"}),
+                        connection.prepareStatement("INSERT INTO ROUTE(type) VALUES ( '"+type.name()+"') ", new String[]{"id"}),
                 keyHolder);
         Integer routeNumber = keyHolder.getKey().intValue();
         int result = 0;
@@ -157,7 +154,7 @@ public class PositionPersistent extends JdbcTemplate {
     }
 
     public SqlRowSet getAllBusRoute() {
-        return queryForRowSet("SELECT * FROM routePosition ORDER BY routeNumber, sequenceNumber ASC");
+        return queryForRowSet("SELECT * FROM route,routePosition WHERE route.routeNumber = routePosition.routeNumber ORDER BY routePosition.routeNumber, routePosition.sequenceNumber ASC");
     }
 
     public SqlRowSet getBusRouteByCarNumber(String carNumber) {
@@ -207,8 +204,8 @@ public class PositionPersistent extends JdbcTemplate {
         return update("INSERT INTO PersonInBus(personId, carNumber, isInBus, latitude, longitude, status, enterTime) VALUES(?,?,?,?,?,?,?)", personId, carNumber, isInBus.name(), latitude, longitude, status.name(), enterTime) == 1;
     }
 
-    public int latestEnterTime(String personId, String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight) {
-        if (now.getTime() <= lunch.getTime()) {
+    public int latestEnterTime(String personId, String carNumber /*, Timestamp now, Timestamp lunch, Timestamp midNight */) {
+       /* if (now.getTime() <= lunch.getTime()) {
             try {
                 return queryForObject("SELECT enterTime from personInBus WHERE " +
                         "personId = ? " +
@@ -230,8 +227,27 @@ public class PositionPersistent extends JdbcTemplate {
             } catch (Exception e) {
                 return -1;
             }
+        }*/
+       try {
+           return queryForObject("SELECT MAX(enterTime) FROM personInBus WHERE " +
+                   "personId= ? and carNumber= ?", Integer.class, personId, carNumber);
+       }catch(Exception e){
+           e.printStackTrace();
+           return -1;
+       }
+    }
+    public int getStudentsUsedToBeOnBusInCurrentTrip(String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight){
+        if(now.getTime() >= lunch.getTime()) {
+            return queryForObject("SELECT COUNT(DISTINCT personId) FROM personInBus WHERE carNumber = ? " +
+                    "AND atTime >= ? " +
+                    "AND atTime >= ? " +
+                    "AND isInBus = 'YES' ", Integer.class, carNumber, lunch, midNight);
+        }else{
+            return queryForObject("SELECT COUNT(DISTINCT personId) FROM personInBus WHERE carNumber = ? " +
+                    "AND atTime < ? " +
+                    "AND atTime >= ? " +
+                    "AND isInBus = 'YES' ", Integer.class, carNumber, lunch, midNight);
         }
-
     }
 
 }

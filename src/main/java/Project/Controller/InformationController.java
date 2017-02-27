@@ -3,12 +3,17 @@ package Project.Controller;
 import Project.Handler.Information.*;
 import Project.Handler.JSON.ObjectToJSON;
 import Project.Handler.Position.PositionHandler;
+import Project.Model.Enumerator.IsInBus;
 import Project.Model.Enumerator.TypeOfService;
 import Project.Model.Person.Driver;
 import Project.Model.Person.Parent;
 import Project.Model.Person.Student;
 import Project.Model.Person.Teacher;
 import Project.Model.Position.Bus;
+import Project.Model.School;
+import Project.Persistent.SQL.PersonPersistent;
+import com.google.gson.JsonObject;
+import org.json.JSONArray;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -39,6 +44,10 @@ public class InformationController {
     PositionHandler positionHandler;
     @Autowired
     PersonHandler personHandler;
+    @Autowired
+    PersonPersistent personPersistent;
+    @Autowired
+    SchoolHandler schoolHandler;
 
     @RequestMapping(value = "setTypeOfService", method = RequestMethod.POST)
     public
@@ -113,10 +122,47 @@ public class InformationController {
         return null;
     }
 
+    @RequestMapping(value = "addStudentsTrip", method = RequestMethod.POST)
+    boolean addStudentsTrip(
+                    @RequestParam(value = "personIds") ArrayList<String> personIds,
+                    @RequestParam(value = "carNumber") String carNumber
+            ){
+        return studentHandler.addStudentsTrip(personIds, carNumber);
+    }
+
+    @RequestMapping(value = "getAllStudentInBus", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    String getAllStudentInBus(
+            @RequestParam(value = "carNumber") String carNumber //personId of a driver
+    ) {
+        ArrayList<Student>  students = studentHandler.getCurrentAllStudentByCarNumber(carNumber);
+        for (Student it : students) {
+            it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
+        }
+        boolean isEvery = studentHandler.isEveryStudentGetsOnTheBus(carNumber);
+        String isEveryResult = "{ \"isEvery\":"+isEvery+"}";
+        JSONObject studentsJSON = objectToJSON.arrayListToJSON("students", students);
+        JSONObject result = objectToJSON.mergeJSONObjects(studentsJSON, new JSONObject(isEveryResult));
+        if(result != null) {
+            return result.toString();
+        }
+        return null;
+    }
+
+    @RequestMapping(value = "getSchoolDetail", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    School getSchoolDetail(
+            @RequestParam(value = "schoolName") String schoolName
+    ) {
+        return schoolHandler.getSchoolDetail(schoolName);
+    }
+
     @RequestMapping(value = "getBusDetail", method = RequestMethod.POST)
     public
     @ResponseBody
-    String getBusDetail(
+    JSONObject getBusDetail(
             @RequestParam(value = "personId") String personId
     ) {
         Bus bus = busHandler.getCurrentBusCarNumberByStudentId(personId); //latest time in the log
@@ -128,7 +174,7 @@ public class InformationController {
         JSONObject driverJSON = objectToJSON.mapToJSON("driver", driver);
         JSONObject result = objectToJSON.mergeJSONObjects(busJSON, teachersJSON, driverJSON);
         if (result != null) {
-            return result.toString();
+            return result;
         }
         return null;
     }

@@ -4,6 +4,7 @@ import Project.Handler.Information.BusHandler;
 import Project.Handler.Information.StudentHandler;
 import Project.Handler.Position.PositionHandler;
 import Project.Model.Enumerator.Status;
+import Project.Model.Enumerator.Type;
 import Project.Model.Position.Bus;
 import Project.Model.Position.Position;
 import Project.Model.Position.Route;
@@ -91,9 +92,10 @@ public class PositionController {
     @ResponseBody
     Integer addRoute(
             @RequestParam(value = "latitudes") ArrayList<Double> latitudes,
-            @RequestParam(value = "longitudes") ArrayList<Double> longitudes
-    ) {
-        return positionHandler.addRoute(latitudes, longitudes);
+            @RequestParam(value = "longitudes") ArrayList<Double> longitudes,
+            @RequestParam(value = "type") Type type
+            ) {
+        return positionHandler.addRoute(latitudes, longitudes, type);
     }
 
     @RequestMapping(value = "getAllBusRoute", method = RequestMethod.POST)
@@ -131,13 +133,22 @@ public class PositionController {
         return positionHandler.setBusRoute(carNumber, routeNumber);
     }
 
-    @RequestMapping(value = "calculateSpeed", method = RequestMethod.POST)
+    @RequestMapping(value = "estimateTime", method = RequestMethod.POST)
     public
     @ResponseBody
-    boolean setBusRoute(
-            @RequestParam(value = "carNumber") String carNumber
+    double setBusRoute(
+            @RequestParam(value = "carNumber") String carNumber,
+            @RequestParam(value = "latitude") double latitude,
+            @RequestParam(value = "longitude") double longitude
     ) {
-        //return positionHandler.calculateSpeed(carNumber);
-        return true;
+        Route route = busHandler.getBusCurrentRoute(carNumber);
+        Bus bus = busHandler.getCurrentBusPosition(carNumber);
+        double velocity = busHandler.getAverageVelocity(carNumber);
+        if(velocity == 0){
+            return -1;
+        }
+        double currentLatitude = bus.getCurrentLatitude();
+        double currentLongitude = bus.getCurrentLongitude();
+        return positionHandler.estimateTime(velocity, latitude, longitude, currentLatitude, currentLongitude, route);
     }
 }

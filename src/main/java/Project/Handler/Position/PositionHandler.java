@@ -6,6 +6,7 @@ import Project.Handler.Information.PersonHandler;
 import Project.Handler.Information.StudentHandler;
 import Project.Model.Enumerator.IsInBus;
 import Project.Model.Enumerator.Status;
+import Project.Model.Enumerator.Type;
 import Project.Model.Enumerator.TypeOfService;
 import Project.Model.Notification.NotificationForm;
 import Project.Model.Notification.NotificationMessage;
@@ -65,8 +66,8 @@ public class PositionHandler {
         return positionPersistent.addBusPosition(carNumber, latitude, longitude, status);
     }
 
-    public Integer addRoute(ArrayList<Double> latitudes, ArrayList<Double> longitudes) {
-        return positionPersistent.addRoute(latitudes, longitudes);
+    public Integer addRoute(ArrayList<Double> latitudes, ArrayList<Double> longitudes, Type type) {
+        return positionPersistent.addRoute(latitudes, longitudes, type);
     }
 
     public boolean deleteRoute(int routeNumber) {
@@ -82,11 +83,13 @@ public class PositionHandler {
         ArrayList<Route> routeList = new ArrayList<>();
         int current = -1;
         int next;
+        Type type;
         Route route = new Route();
         ArrayList<Double> latitudes = new ArrayList<>();
         ArrayList<Double> longitudes = new ArrayList<>();
         while (sqlRowSet.next()) {
             next = sqlRowSet.getInt("routeNumber");
+            type = Type.valueOf(sqlRowSet.getString("type"));
             if (current != next) {
                 if (current != -1) {
                     routeList.add(route);
@@ -98,6 +101,7 @@ public class PositionHandler {
                 latitudes = new ArrayList<>();
                 longitudes = new ArrayList<>();
                 route.setRouteNumber(current);
+                route.setType(type);
             }
             latitudes.add(sqlRowSet.getDouble("latitude"));
             longitudes.add(sqlRowSet.getDouble("longitude"));
@@ -109,7 +113,6 @@ public class PositionHandler {
     }
 
     public ArrayList<Bus> getAllCurrentBusPosition() {
-        //ArrayList<Bus> busList = busPersistent.getAllBus();
         ArrayList<Bus> busList = busHandler.getAllBus();
         for (Bus it : busList) {
             SqlRowSet sqlRowSet = positionPersistent.getBusRouteByCarNumber(it.getCarNumber());
@@ -169,7 +172,7 @@ public class PositionHandler {
         } else {
             status = Status.NONE;
         }
-        int enterTime = positionPersistent.latestEnterTime(personId, carNumber, now, time, midNight) + 1;
+        int enterTime = positionPersistent.latestEnterTime(personId, carNumber /*, now, time, midNight */) + 1;
         positionPersistent.getOnOrOffBus(carNumber, personId, latitude, longitude, isInBus, status, enterTime);
         for (Person it : userRelatedToStudent) {
             NotificationMessage notificationMessage = new NotificationMessage();
@@ -190,7 +193,7 @@ public class PositionHandler {
         } else {
             typeOfService = TypeOfService.GO;
         }
-        int studentNumber = studentHandler.getNumberOfStudentInCurrentTrip(typeOfService);
+        int studentNumber = studentHandler.getNumberOfStudentInCurrentTrip(carNumber, typeOfService);
         int studentNotInCarNumber = studentHandler.getNumberOfStudentGetOutInCurrentTripExceptPersonId(personId, carNumber, now, lunch, midNight);
         return studentNumber - 1 == studentNotInCarNumber;
     }
@@ -214,5 +217,61 @@ public class PositionHandler {
         double c =2* Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         double d = earthRadius*c;
         return d;
+    }
+
+    public Route getBusCurrentRoute(String carNumber){
+        SqlRowSet sqlRowSet = positionPersistent.getBusRouteByCarNumber(carNumber);
+        Route route = new Route();
+        ArrayList<Double> latitudes = new ArrayList<>();
+        ArrayList<Double> longitudes = new ArrayList<>();
+        while (sqlRowSet.next()) {
+            if (sqlRowSet.isFirst())
+                route.setRouteNumber(sqlRowSet.getInt("routeNumber"));
+            latitudes.add(sqlRowSet.getDouble("latitude"));
+            longitudes.add(sqlRowSet.getDouble("longitude"));
+        }
+        route.setLatitudes(latitudes);
+        route.setLongitudes(longitudes);
+        return route;
+    }
+
+    public double estimateTime(double velocity, double studentLatitude, double studentLongitude, double busLatitude, double busLongitude,  Route route){
+        ArrayList<Double> routeLatitudes = route.getLatitudes();
+        ArrayList<Double> routeLongitudes = route.getLongitudes();
+        double minDistanceToNextCheckPoint = 9999999;
+        double newDistanceToNextCheckPoint;
+
+        double minDistanceToHome = 9999999;
+        double newDistanceToHome;
+        int minIndexToNextCheckPoint = -1;
+        int minIndexToHome = -1;
+        int start;
+        int end;
+        double sumOfDistance = 0;
+        for(int i = 0; i< routeLatitudes.size(); i++){
+            newDistanceToNextCheckPoint = haverSineDistance(busLatitude,busLongitude,routeLatitudes.get(i),routeLongitudes.get(i));
+            newDistanceToHome = haverSineDistance(studentLatitude, studentLongitude, routeLatitudes.get(i),routeLongitudes.get(i));
+            if( newDistanceToNextCheckPoint < minDistanceToNextCheckPoint){
+                minDistanceToNextCheckPoint = newDistanceToNextCheckPoint;
+                minIndexToNextCheckPoint = i;
+            }
+            if( newDistanceToHome < minDistanceToHome){
+                minDistanceToHome = newDistanceToHome;
+                minIndexToHome = i;
+            }
+        }
+        if(minIndexToHome < minIndexToNextCheckPoint){
+            start = minIndexToHome;
+            end = minIndexToNextCheckPoint;
+        }
+        else {
+            start = minIndexToNextCheckPoint;
+            end = minIndexToHome;
+        }
+        sumOfDistance = minDistanceToHome + minDistanceToNextCheckPoint;
+        for(int i = start ; i<end;i++){
+            sumOfDistance += haverSineDistance(routeLatitudes.get(i),routeLongitudes.get(i),routeLatitudes.get(i+1),routeLongitudes.get(i+1));
+        }
+        return sumOfDistance/velocity;
     }
 }

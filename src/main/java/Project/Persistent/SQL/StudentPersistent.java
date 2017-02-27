@@ -103,8 +103,8 @@ public class StudentPersistent extends JdbcTemplate {
         return new ArrayList<>(studentList);
     }
 
-    public int getNumberOfStudentInCurrentTrip(TypeOfService typeOfService) {
-        return queryForObject("SELECT COUNT(*) FROM student WHERE typeOfService = ? OR typeOfService = ?", Integer.class, typeOfService.name(), TypeOfService.BOTH.name());
+    public int getNumberOfStudentInCurrentTrip(String carNumber, TypeOfService typeOfService) {
+        return queryForObject("SELECT COUNT(*) FROM student WHERE typeOfService = ? OR typeOfService = ? AND carNumber = ?", Integer.class, typeOfService.name(), TypeOfService.BOTH.name(), carNumber);
     }
 
     public int getNumberOfStudentGetOutInCurrentTripExceptPersonId(String personId, String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight) {
@@ -122,6 +122,15 @@ public class StudentPersistent extends JdbcTemplate {
                     "AND carNumber = ? " +
                     "AND isInBus = ? " +
                     "AND personId NOT IN ( SELECT personId FROM person WHERE role != ? ) ", Integer.class, personId, lunch, midNight, carNumber, IsInBus.NO.name(), Role.STUDENT.name());
+        }
+    }
+
+    public boolean addStudentsTrip(String personIds, String carNumber){
+        try {
+            return update("UPDATE student SET carNumber = ? WHERE personId = ?", carNumber, personIds) == 1;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
         }
     }
 

@@ -46,10 +46,10 @@ public class ApiCall {
                 System.out.println(response.body().get(0));
                 return response.body().get(0);
             } else {
-                System.out.println("cannot get sale order : " + response.errorBody().string());
+                System.out.println(response.errorBody().string());
             }
         } catch (IOException e) {
-            System.out.println("cannot get sale order : " + e.getLocalizedMessage());
+            System.out.println(e.getLocalizedMessage());
         }
         return null;
     }
