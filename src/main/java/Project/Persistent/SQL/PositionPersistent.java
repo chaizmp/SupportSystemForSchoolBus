@@ -26,7 +26,7 @@ public class PositionPersistent extends JdbcTemplate {
         this.setDataSource(mainDataSource);
     }
 
-    public Timestamp getLatestAtTimeByStudentId(String personId) {
+    public Timestamp getLatestAtTimeByStudentId(int personId) {
         Timestamp atTime;
         try {
             atTime = queryForObject("SELECT MAX(atTime) FROM PersonInBus " +
@@ -37,77 +37,77 @@ public class PositionPersistent extends JdbcTemplate {
         return atTime;
     }
 
-    public Timestamp getTripStartTimeInPersonInBus(String carNumber, Timestamp atTime) {
+    public Timestamp getTripStartTimeInPersonInBus(int carId, Timestamp atTime) {
         Timestamp start;
         try {
             start = queryForObject("SELECT MAX(atTime) FROM PersonInBus " +
                     "WHERE atTime <= ? " +
                     "AND STATUS = 'START' " +
-                    "AND carNumber = ?", Timestamp.class, atTime, carNumber);
+                    "AND carId = ?", Timestamp.class, atTime, carId);
         } catch (Exception e) {
             start = null;
         }
         return start;
     }
 
-    public Timestamp getTripStartTimeInBusPosition(String carNumber, Timestamp atTime) {
+    public Timestamp getTripStartTimeInBusPosition(int carId, Timestamp atTime) {
         Timestamp start;
         try {
             start = queryForObject("SELECT MAX(atTime) FROM BusPosition " +
                     "WHERE atTime <= ? " +
                     "AND STATUS = 'PERSONSTART' " +
-                    "AND carNumber = ?", Timestamp.class, atTime, carNumber);
+                    "AND carId = ?", Timestamp.class, atTime, carId);
         } catch (Exception e) {
             start = null;
         }
         return start;
     }
 
-    public Timestamp getTripFinishTimeInPersonInBus(String carNumber, Timestamp atTime) {
+    public Timestamp getTripFinishTimeInPersonInBus(int carId, Timestamp atTime) {
 
         Timestamp end;
         try {
             end = queryForObject("SELECT MIN(atTime) FROM PersonInBus " +
                     "WHERE atTime >= ? " +
                     "AND STATUS = 'FINISH' " +
-                    "AND carNumber = ? ", Timestamp.class, atTime, carNumber);
+                    "AND carId = ? ", Timestamp.class, atTime, carId);
         } catch (Exception e) {
             end = null;
         }
         return end;
     }
 
-    public Timestamp getTripFinishTimeInBusPosition(String carNumber, Timestamp atTime) {
+    public Timestamp getTripFinishTimeInBusPosition(int carId, Timestamp atTime) {
 
         Timestamp end;
         try {
             end = queryForObject("SELECT MIN(atTime) FROM BusPosition " +
                     "WHERE atTime >= ? " +
                     "AND STATUS = 'FINISH' " +
-                    "AND carNumber = ? ", Timestamp.class, atTime, carNumber);
+                    "AND carId = ? ", Timestamp.class, atTime, carId);
         } catch (Exception e) {
             end = null;
         }
         return end;
     }
 
-    public ArrayList<Position> getActualRouteInBusByPeriod(String carNumber, Timestamp startTime, Timestamp endTime) {
+    public ArrayList<Position> getActualRouteInBusByPeriod(int carId, Timestamp startTime, Timestamp endTime) {
         List<Position> positionList;
         if (endTime != null) {
             positionList = query("SELECT * FROM BusPosition WHERE " +
                     "atTime >=  ? AND atTime <= ? " +
-                    "AND carNumber = ? ORDER by AtTime ASC", new PositionMapper(), startTime, endTime, carNumber);
+                    "AND carId = ? ORDER by AtTime ASC", new PositionMapper(), startTime, endTime, carId);
         } else {
             positionList = query("SELECT * FROM BusPosition WHERE " +
                     "atTime >= ? " +
-                    "AND carNumber = ? ORDER by AtTime ASC", new PositionMapper(), startTime, carNumber);
+                    "AND carId = ? ORDER by AtTime ASC", new PositionMapper(), startTime, carId);
         }
         return new ArrayList<>(positionList);
     }
 
-    public boolean addBusPosition(String carNumber, double latitude, double longitude, Status status) {
+    public boolean addBusPosition(int carId, double latitude, double longitude, Status status) {
         try {
-            return update("INSERT INTO busPosition(carNumber,latitude,longitude,status) VALUES (?,?,?,?)", carNumber, latitude, longitude,
+            return update("INSERT INTO busPosition(carId,latitude,longitude,status) VALUES (?,?,?,?)", carId, latitude, longitude,
                     status.toString()) > 0;
         } catch (Exception e) {
             return false;
@@ -135,11 +135,11 @@ public class PositionPersistent extends JdbcTemplate {
         return update("DELETE FROM route WHERE routeNumber = ?", routeNumber) == 1;
     }
 
-    public boolean setBusRoute(String carNumber, int routeNumber) {
-        return update("INSERT INTO busRoute(carNumber,RouteNumber) VALUES(?,?)", carNumber, routeNumber) == 1;
+    public boolean setBusRoute(int carId, int routeNumber) {
+        return update("INSERT INTO busRoute(carId,RouteNumber) VALUES(?,?)", carId, routeNumber) == 1;
     }
 
-    public IsInBus isInBus(String personId) {
+    public IsInBus isInBus(int personId) {
         IsInBus result;
         try {
             result = IsInBus.valueOf(queryForObject("SELECT isInBus FROM PersonInBus WHERE enterTime = (SELECT MAX(enterTime) FROM PersonInBus WHERE personId = ? " +
@@ -157,16 +157,16 @@ public class PositionPersistent extends JdbcTemplate {
         return queryForRowSet("SELECT * FROM route,routePosition WHERE route.routeNumber = routePosition.routeNumber ORDER BY routePosition.routeNumber, routePosition.sequenceNumber ASC");
     }
 
-    public SqlRowSet getBusRouteByCarNumber(String carNumber) {
-        return queryForRowSet("SELECT routePosition.routeNumber, routePosition.sequenceNumber, routePosition.latitude, routePosition.longitude FROM routePosition,busRoute WHERE busRoute.routeNumber = routePosition.routeNumber and carNumber = ? ORDER BY routePosition.routeNumber, routePosition.sequenceNumber ASC", carNumber);
+    public SqlRowSet getBusRouteByCarId(int carId) {
+        return queryForRowSet("SELECT routePosition.routeNumber, routePosition.sequenceNumber, routePosition.latitude, routePosition.longitude FROM routePosition,busRoute WHERE busRoute.routeNumber = routePosition.routeNumber and carId = ? ORDER BY routePosition.routeNumber, routePosition.sequenceNumber ASC", carId);
     }
 
-    public Position getCurrentBusPosition(String carNumber) {
+    public Position getCurrentBusPosition(int carId) {
         Position position;
         try {
-            position = queryForObject("SELECT latitude,longitude FROM busPosition WHERE carNumber = ? AND AtTime = (" +
-                    "SELECT MAX(AtTime) FROM busPosition WHERE carNumber = ?)", (rs, rowNum) ->
-                    new Position(rs.getDouble("latitude"), rs.getDouble("longitude")), carNumber, carNumber);
+            position = queryForObject("SELECT latitude,longitude FROM busPosition WHERE carId = ? AND AtTime = (" +
+                    "SELECT MAX(AtTime) FROM busPosition WHERE carId = ?)", (rs, rowNum) ->
+                    new Position(rs.getDouble("latitude"), rs.getDouble("longitude")), carId, carId);
             return position;
         } catch (Exception e) {
             e.printStackTrace();
@@ -174,37 +174,37 @@ public class PositionPersistent extends JdbcTemplate {
         }
     }
 
-    public boolean isFirstPerson(String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight) {
+    public boolean isFirstPerson(int carId, Timestamp now, Timestamp lunch, Timestamp midNight) {
         if (now.getTime() <= lunch.getTime()) {
-            return !queryForRowSet("SELECT * FROM personinbus WHERE STATUS = ? AND carNumber = ? AND atTime <= ? AND atTime >= ? ", Status.START.name(), carNumber, lunch, midNight).next();
+            return !queryForRowSet("SELECT * FROM personinbus WHERE STATUS = ? AND carId = ? AND atTime <= ? AND atTime >= ? ", Status.START.name(), carId, lunch, midNight).next();
         } else {
-            return !queryForRowSet("SELECT * FROM personinbus WHERE STATUS = ? AND carNumber = ? AND atTime > ? AND atTime >= ? ", Status.START.name(), carNumber, lunch, midNight).next();
+            return !queryForRowSet("SELECT * FROM personinbus WHERE STATUS = ? AND carId = ? AND atTime > ? AND atTime >= ? ", Status.START.name(), carId, lunch, midNight).next();
         }
     }
 
-    public boolean isLastPerson(String personId, String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight) {
+    public boolean isLastPerson(int personId, int carId, Timestamp now, Timestamp lunch, Timestamp midNight) {
         if (now.getTime() <= lunch.getTime()) {
-            return !queryForRowSet("SELECT COUNT(*) FROM PersonInBus P1 WHERE carNumber = ? " +
+            return !queryForRowSet("SELECT COUNT(*) FROM PersonInBus P1 WHERE carId = ? " +
                     "AND isInBus = ? " +
                     "AND atTime <= ? " +
                     "AND atTime >= ? " +
                     "AND personId NOT IN (SELECT personId FROM person WHERE personId = ? OR role = ?) " +
-                    "AND COUNT(*) -1 = (SELECT COUNT(*)-1 FROM student WHERE typeOfService = ? OR typeOfService = ?)", carNumber, IsInBus.NO.name(), lunch, midNight, personId, Role.DRIVER.name(), TypeOfService.BOTH.name(), TypeOfService.GO.name()).next();
+                    "AND COUNT(*) -1 = (SELECT COUNT(*)-1 FROM student WHERE typeOfService = ? OR typeOfService = ?)", carId, IsInBus.NO.name(), lunch, midNight, personId, Role.DRIVER.name(), TypeOfService.BOTH.name(), TypeOfService.GO.name()).next();
         } else
             return !queryForRowSet("SELECT * FROM PersonInBus P1 " +
                     "HAVING COUNT(*) -1 = (SELECT COUNT(*) - 1 FROM student WHERE typeOfService = ? OR typeOfService = ?)" +
-                    "AND carNumber = ? " +
+                    "AND carId = ? " +
                     "AND isInBus = ? " +
                     "AND atTime >= ? " +
                     "AND atTime >= ? " +
-                    "AND personId NOT IN (SELECT personId FROM person WHERE personId = ? OR role = ?)", carNumber, IsInBus.NO.name(), lunch, midNight, personId, Role.DRIVER.name(), TypeOfService.BOTH.name(), TypeOfService.BACK.name()).next();
+                    "AND personId NOT IN (SELECT personId FROM person WHERE personId = ? OR role = ?)", carId, IsInBus.NO.name(), lunch, midNight, personId, Role.DRIVER.name(), TypeOfService.BOTH.name(), TypeOfService.BACK.name()).next();
     }
 
-    public boolean getOnOrOffBus(String carNumber, String personId, Double latitude, Double longitude, IsInBus isInBus, Status status, int enterTime) {
-        return update("INSERT INTO PersonInBus(personId, carNumber, isInBus, latitude, longitude, status, enterTime) VALUES(?,?,?,?,?,?,?)", personId, carNumber, isInBus.name(), latitude, longitude, status.name(), enterTime) == 1;
+    public boolean getOnOrOffBus(int carId, int personId, Double latitude, Double longitude, IsInBus isInBus, Status status, int enterTime) {
+        return update("INSERT INTO PersonInBus(personId, carId, isInBus, latitude, longitude, status, enterTime) VALUES(?,?,?,?,?,?,?)", personId, carId, isInBus.name(), latitude, longitude, status.name(), enterTime) == 1;
     }
 
-    public int latestEnterTime(String personId, String carNumber /*, Timestamp now, Timestamp lunch, Timestamp midNight */) {
+    public int latestEnterTime(int personId, int carId /*, Timestamp now, Timestamp lunch, Timestamp midNight */) {
        /* if (now.getTime() <= lunch.getTime()) {
             try {
                 return queryForObject("SELECT enterTime from personInBus WHERE " +
@@ -230,23 +230,37 @@ public class PositionPersistent extends JdbcTemplate {
         }*/
        try {
            return queryForObject("SELECT MAX(enterTime) FROM personInBus WHERE " +
-                   "personId= ? and carNumber= ?", Integer.class, personId, carNumber);
+                   "personId= ? and carId= ?", Integer.class, personId, carId);
        }catch(Exception e){
            e.printStackTrace();
            return -1;
        }
     }
-    public int getStudentsUsedToBeOnBusInCurrentTrip(String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight){
+    public int getStudentsUsedToBeOnBusInCurrentTrip(int carId, Timestamp now, Timestamp lunch, Timestamp midNight){
         if(now.getTime() >= lunch.getTime()) {
-            return queryForObject("SELECT COUNT(DISTINCT personId) FROM personInBus WHERE carNumber = ? " +
+            return queryForObject("SELECT COUNT(DISTINCT personId) FROM personInBus WHERE carId = ? " +
                     "AND atTime >= ? " +
                     "AND atTime >= ? " +
-                    "AND isInBus = 'YES' ", Integer.class, carNumber, lunch, midNight);
+                    "AND isInBus = 'YES' ", Integer.class, carId, lunch, midNight);
         }else{
-            return queryForObject("SELECT COUNT(DISTINCT personId) FROM personInBus WHERE carNumber = ? " +
+            return queryForObject("SELECT COUNT(DISTINCT personId) FROM personInBus WHERE carId = ? " +
                     "AND atTime < ? " +
                     "AND atTime >= ? " +
-                    "AND isInBus = 'YES' ", Integer.class, carNumber, lunch, midNight);
+                    "AND isInBus = 'YES' ", Integer.class, carId, lunch, midNight);
+        }
+    }
+
+    public List<Integer> getAllStudentsUsedToBeOnBusInCurrentTrip(int carId, Timestamp now, Timestamp lunch, Timestamp midNight){
+        if(now.getTime() >= lunch.getTime()) {
+            return queryForList("SELECT DISTINCT personId FROM personInBus WHERE carId = ? " +
+                    "AND atTime >= ? " +
+                    "AND atTime >= ? " +
+                    "AND isInBus = 'YES' ", Integer.class, carId, lunch, midNight);
+        }else{
+            return queryForList("SELECT DISTINCT personId FROM personInBus WHERE carId = ? " +
+                    "AND atTime < ? " +
+                    "AND atTime >= ? " +
+                    "AND isInBus = 'YES' ", Integer.class, carId, lunch, midNight);
         }
     }
 

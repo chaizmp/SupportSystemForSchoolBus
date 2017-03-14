@@ -13,7 +13,7 @@ public class BusMapper implements RowMapper<Bus> {
 
     @Override
     public Bus mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return new Bus(rs.getString("carNumber"));
+        return new Bus(rs.getInt("carId"));
     }
 
 }

@@ -21,7 +21,7 @@ public class TeacherHandler {
     @Autowired
     PersonPersistent personPersistent;
 
-    public ArrayList<Teacher> getTeachersByStudentId(String personId) {
+    public ArrayList<Teacher> getTeachersByStudentId(int personId) {
         ArrayList<Teacher> teachers = teacherPersistent.getTeachersByStudentId(personId, "" + Calendar.getInstance().get(Calendar.YEAR));
         for (Teacher it : teachers) {
             it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
@@ -29,11 +29,21 @@ public class TeacherHandler {
         return teachers;
     }
 
-    public ArrayList<Teacher> getCurrentTeacherInBusByCarNumber(String carNumber, ArrayList<Timestamp> startAndEndPeriod) {
-        return teacherPersistent.getCurrentTeachersInBusByCarNumber(carNumber, startAndEndPeriod);
+    public ArrayList<Teacher> getCurrentTeacherInBusByCarId(int carId, ArrayList<Timestamp> startAndEndPeriod) {
+        return teacherPersistent.getCurrentTeachersInBusByCarId(carId, startAndEndPeriod);
     }
 
-    public ArrayList<Teacher> getCurrentAllTeacherByCarNumber(String carNumber) {
-        return teacherPersistent.getCurrentAllTeacherByCarNumber(carNumber);
+    public ArrayList<Teacher> getCurrentAllTeacherByCarId(int carId) {
+        return teacherPersistent.getCurrentAllTeacherByCarId(carId);
+    }
+
+    public boolean addTeacherAndStudentRelationships(int personTId, ArrayList<Integer> personSIds, String classRoomName){
+        boolean result = true;
+        for(int it: personSIds) {
+            if(!teacherPersistent.addTeacherAndStudentRelationship(personTId,it, "" + Calendar.getInstance().get(Calendar.YEAR), classRoomName)){
+                result = false;
+            }
+        }
+        return result;
     }
 }

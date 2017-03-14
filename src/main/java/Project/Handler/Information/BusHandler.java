@@ -26,41 +26,44 @@ public class BusHandler {
     @Autowired
     PositionHandler positionHandler;
 
-    public Bus getCurrentBusCarNumberByStudentId(String personId) {
-        return busPersistent.getCurrentBusCarNumberByStudentId(personId);
+    public Bus getCurrentBusCarIdByStudentId(int personId) {
+        return busPersistent.getCurrentBusCarIdByStudentId(personId);
     }
 
     // A solution to get the bus trip that a student takes is
     // to make the bus log period subset of bus position
     // when the first person gets on, a record which has status 'START' will be inserted into the bus position table too
     // and when the last person get off, a record which has status 'FINISH' will be inserted also
-    public Bus getBusCarNumberByStudentIdAndAtTime(String personId, Timestamp atTime) {
-        return busPersistent.getBusCarNumberByStudentIdAndAtTime(personId, atTime);
+    public Bus getBusCarIdByStudentIdAndAtTime(int personId, Timestamp atTime) {
+        return busPersistent.getBusCarIdByStudentIdAndAtTime(personId, atTime);
     }
 
-    public Bus getCurrentBusPosition(String carNumber) {
-        return busPersistent.getCurrentBusPosition(carNumber);
+    public Bus getCurrentBusPosition(int carId) {
+        return busPersistent.getCurrentBusPosition(carId);
     }
 
-    public boolean setVelocityToZero(String carNumber) {
-        return busPersistent.setVelocityToZero(carNumber);
+    public boolean setVelocityToZero(int carId) {
+        return busPersistent.setVelocityToZero(carId);
     }
 
     public ArrayList<Bus> getAllBus() {
         return busPersistent.getAllBus();
     }
 
-    public boolean setVelocityAndCheckPointPassed(String carNumber, double averageVelocity, int checkPointPassed){
-        return busPersistent.setVelocityAndCheckPointPassed(carNumber, averageVelocity, checkPointPassed);
+    public boolean setVelocityAndCheckPointPassed(int carId, double averageVelocity, int checkPointPassed){
+        return busPersistent.setVelocityAndCheckPointPassed(carId, averageVelocity, checkPointPassed);
     }
-    public double getAverageVelocity(String carNumber){
-        return busPersistent.getAverageVelocity(carNumber);
+    public double getAverageVelocity(int carId){
+        return busPersistent.getAverageVelocity(carId);
     }
-    public int getCheckPointPassed(String carNumber){
-        return busPersistent.getCheckPointPassed(carNumber);
+    public int getCheckPointPassed(int carId){
+        return busPersistent.getCheckPointPassed(carId);
     }
-    public Route getBusCurrentRoute(String carNumber){
-        return positionHandler.getBusCurrentRoute(carNumber);
+    public Route getBusRoutinelyUsedRoute(int carId){
+        return positionHandler.getBusRoutinelyUsedRoute(carId);
+    }
+    public String getBusCarNumberByCarId(int carId){
+        return busPersistent.getBusCarNumberByCarId(carId);
     }
 }
 

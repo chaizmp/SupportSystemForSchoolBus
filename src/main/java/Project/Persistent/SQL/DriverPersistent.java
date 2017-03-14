@@ -23,23 +23,30 @@ public class DriverPersistent extends JdbcTemplate {
         this.setDataSource(mainDataSource);
     }
 
-    public Driver getCurrentDriverInBusByCarNumber(String carNumber, ArrayList<Timestamp> startAndEndPeriod) {
+    public Driver getCurrentDriverInBusByCarId(int carId, ArrayList<Timestamp> startAndEndPeriod) {
         List<Driver> driverList;
         if (startAndEndPeriod.get(1) != null) {
             driverList = query("SELECT * FROM PersonInBus,Person WHERE Person.personId = PersonInBus.personId " +
                     "AND Person.role = 'DRIVER' " +
                     "AND atTime >=  ? AND atTime <= ? " +
-                    "AND carNumber = ? ", new DriverMapper(), startAndEndPeriod.get(0), startAndEndPeriod.get(1), carNumber);
+                    "AND carId = ? ", new DriverMapper(), startAndEndPeriod.get(0), startAndEndPeriod.get(1), carId);
         } else {
             driverList = query("SELECT * FROM PersonInBus,Person WHERE Person.personId = PersonInBus.personId " +
                     "AND Person.role = 'DRIVER' " +
                     "AND atTime >= ? " +
-                    "AND carNumber = ?", new DriverMapper(), startAndEndPeriod.get(0), carNumber);
+                    "AND carId = ?", new DriverMapper(), startAndEndPeriod.get(0), carId);
         }
         if (driverList != null && driverList.size() != 0) {
             return driverList.get(0);
         }
         return null;
+    }
+
+    public Driver getLatestDriverInBusByCarId(int carId){
+        return queryForObject("SELECT * FROM PersonInBus, Person WHERE Person.personId = personInBus.personId "+
+                "AND Person.role = 'DRIVER' " +
+                "AND carId = ? " +
+                "AND atTime >= ( SELECT MAX(atTime) FROM personInBus WHERE carId = ? AND status = 'START' )", new DriverMapper(), carId, carId);
     }
 
 }

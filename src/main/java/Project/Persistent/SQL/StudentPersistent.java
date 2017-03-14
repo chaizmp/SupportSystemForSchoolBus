@@ -5,6 +5,7 @@ import Project.Model.Enumerator.IsInBus;
 import Project.Model.Enumerator.Role;
 import Project.Model.Enumerator.TypeOfService;
 import Project.Model.Person.Student;
+import org.springframework.asm.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
@@ -26,7 +27,7 @@ public class StudentPersistent extends JdbcTemplate {
         this.setDataSource(mainDataSource);
     }
 
-    public boolean setTypeOfService(TypeOfService typeOfService, String personId) {
+    public boolean setTypeOfService(TypeOfService typeOfService, int personId) {
         boolean result = false;
         try {
             result = update("UPDATE `STUDENT` SET `typeOfService`= ? WHERE `personId` = ?", typeOfService.name(), personId) > 0;
@@ -36,7 +37,7 @@ public class StudentPersistent extends JdbcTemplate {
         return result;
     }
 
-    public Role getRoleByPersonId(String personId) {
+    public Role getRoleByPersonId(int personId) {
         Role result;
         try {
 
@@ -49,7 +50,7 @@ public class StudentPersistent extends JdbcTemplate {
         return result;
     }
 
-    public ArrayList<Student> getAllStudentByParentId(String personId) {
+    public ArrayList<Student> getAllStudentByParentId(int personId) {
         List<Student> studentList = query("SELECT * FROM person,student WHERE person.personId = student.personId and person.personId in ( " +
                 "SELECT personSID from family WHERE personPID = ? ) ORDER BY person.name" +
                 " ASC", new StudentMapper(), personId);
@@ -57,7 +58,7 @@ public class StudentPersistent extends JdbcTemplate {
 
     }
 
-    public ArrayList<Student> getAllStudentByDriverId(String personId) {
+    public ArrayList<Student> getAllStudentByDriverId(int personId) {
         List<Student> studentList = query("SELECT * FROM person,student WHERE person.personId = student.personId and person.personId in ( " +
                 "SELECT personSID from family WHERE personPID = ? ) ORDER BY person.name" +
                 " ASC", new StudentMapper(), personId);
@@ -65,7 +66,7 @@ public class StudentPersistent extends JdbcTemplate {
 
     }
 
-    public ArrayList<Student> getAllStudentByTeacherId(String personId, String year) {
+    public ArrayList<Student> getAllStudentByTeacherId(int personId, String year) {
         List<Student> studentList = query("SELECT * FROM person,student WHERE person.personId = student.personId and person.personId in ( " +
                 "SELECT personSID from teachHistory WHERE personTID = ? AND year = ?) ORDER BY person.name" +
                 " ASC", new StudentMapper(), personId, year);
@@ -80,7 +81,14 @@ public class StudentPersistent extends JdbcTemplate {
 
     }
 
-    public Student getStudentByPersonId(String personId) {
+    public ArrayList<Student> getAllStudentByTypeOfService(TypeOfService typeOfService){
+        List<Student> studentList = query("SELECT * FROM person,student WHERE person.personId = student.personId AND (student.typeOfService = ? OR student.typeOfService = ?) ORDER BY person.name ASC"
+                , new StudentMapper(), typeOfService.name(), TypeOfService.BOTH.name());
+        return new ArrayList<>(studentList);
+    }
+
+
+    public Student getStudentByPersonId(int personId) {
         Student result;
         try {
 
@@ -93,47 +101,67 @@ public class StudentPersistent extends JdbcTemplate {
         return result;
     }
 
-    public ArrayList<Student> getCurrentAllStudentByCarNumber(String carNumber) {
+    public ArrayList<Student> getCurrentAllStudentByCarId(int carId) {
         List<Student> studentList = query("SELECT * FROM person,student WHERE person.personId = student.personId AND student.personId IN " +
-                "( SELECT personId from personInBus P1 WHERE carNumber = ? AND atTime >= " +
-                "( SELECT MAX(atTime) FROM personInBus WHERE carNumber = ? AND status = 'START' " +
+                "( SELECT personId from personInBus P1 WHERE carId = ? AND atTime >= " +
+                "( SELECT MAX(atTime) FROM personInBus WHERE carId = ? AND status = 'START' " +
                 ") AND isInBus = 'YES' AND atTime =  " +
-                "(SELECT MAX(atTime) FROM personInBus P2 WHERE P1.personId = P2.personId AND carNumber = ?)" +
-                ")", new StudentMapper(), carNumber, carNumber, carNumber);
+                "(SELECT MAX(atTime) FROM personInBus P2 WHERE P1.personId = P2.personId AND carId = ?)" +
+                ")", new StudentMapper(), carId, carId, carId);
         return new ArrayList<>(studentList);
     }
 
-    public int getNumberOfStudentInCurrentTrip(String carNumber, TypeOfService typeOfService) {
-        return queryForObject("SELECT COUNT(*) FROM student WHERE typeOfService = ? OR typeOfService = ? AND carNumber = ?", Integer.class, typeOfService.name(), TypeOfService.BOTH.name(), carNumber);
+    public int getNumberOfStudentInCurrentTrip(int carId, TypeOfService typeOfService) {
+        return queryForObject("SELECT COUNT(*) FROM student WHERE typeOfService = ? OR typeOfService = ? AND carId = ?", Integer.class, typeOfService.name(), TypeOfService.BOTH.name(), carId);
     }
 
-    public int getNumberOfStudentGetOutInCurrentTripExceptPersonId(String personId, String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight) {
+    public int getNumberOfStudentGetOutInCurrentTripExceptPersonId(int personId, int carId, Timestamp now, Timestamp lunch, Timestamp midNight) {
         if (now.getTime() <= lunch.getTime()) {
             return queryForObject("SELECT COUNT(*) FROM personInBus WHERE personId != ? " +
                     "AND atTime <= ? " +
                     "AND atTime >= ? " +
-                    "AND carNumber = ? " +
+                    "AND carId = ? " +
                     "AND isInBus = ? " +
-                    "AND personId NOT IN ( SELECT personId FROM person WHERE role != ? ) ", Integer.class, personId, lunch, midNight, carNumber, IsInBus.NO.name(), Role.STUDENT.name());
+                    "AND personId NOT IN ( SELECT personId FROM person WHERE role != ? ) ", Integer.class, personId, lunch, midNight, carId, IsInBus.NO.name(), Role.STUDENT.name());
         } else {
             return queryForObject("SELECT COUNT(*) FROM personInBus WHERE personId != ? " +
                     "AND atTime >= ? " +
                     "AND atTime >= ? " +
-                    "AND carNumber = ? " +
+                    "AND carId = ? " +
                     "AND isInBus = ? " +
-                    "AND personId NOT IN ( SELECT personId FROM person WHERE role != ? ) ", Integer.class, personId, lunch, midNight, carNumber, IsInBus.NO.name(), Role.STUDENT.name());
+                    "AND personId NOT IN ( SELECT personId FROM person WHERE role != ? ) ", Integer.class, personId, lunch, midNight, carId, IsInBus.NO.name(), Role.STUDENT.name());
         }
     }
 
-    public boolean addStudentsTrip(String personIds, String carNumber){
+    public boolean addStudentsTrip(int personIds, int carId){
+        String carIdSQL = carId==-1? null: ""+carId;
         try {
-            return update("UPDATE student SET carNumber = ? WHERE personId = ?", carNumber, personIds) == 1;
+            return update("UPDATE student SET carId = ? WHERE personId = ?", carIdSQL, personIds) == 1;
         }catch(Exception e){
             e.printStackTrace();
             return false;
         }
     }
 
+    public boolean addStudent(String studentId, TypeOfService typeOfService, int personId){
+        try{
+            return update("INSERT INTO STUDENT(studentId, typeOfService, personId) VALUES(?, ?, ?)", studentId, typeOfService.name(), personId) == 1;
+        }catch (Exception e){
+            e.printStackTrace();
+            return  false;
+        }
+    }
+
+    public ArrayList<Student> getAllStudentInCurrentTrip(int carId, TypeOfService typeOfService){
+        try{
+            List<Student> studentList = query("SELECT * FROM person,student WHERE person.personId = student.personId AND student.carId = ? AND (student.typeOfService = ? OR student.typeOfService = ?) ORDER BY person.name ASC"
+                    , new StudentMapper(), carId, typeOfService.name(), TypeOfService.BOTH.name());
+            return new ArrayList<>(studentList);
+        }catch (Exception e){
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
    /* public ArrayList<Timestamp> getCurrentStartAndEndPeriodByStudentId(String personId){
         ArrayList<Timestamp> result = new ArrayList<>();
         Timestamp atTime,start,end;

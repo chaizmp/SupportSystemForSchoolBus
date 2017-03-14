@@ -5,15 +5,11 @@ import Project.Handler.JSON.ObjectToJSON;
 import Project.Handler.Position.PositionHandler;
 import Project.Model.Enumerator.IsInBus;
 import Project.Model.Enumerator.TypeOfService;
-import Project.Model.Person.Driver;
-import Project.Model.Person.Parent;
-import Project.Model.Person.Student;
-import Project.Model.Person.Teacher;
+import Project.Model.Person.*;
 import Project.Model.Position.Bus;
 import Project.Model.School;
 import Project.Persistent.SQL.PersonPersistent;
-import com.google.gson.JsonObject;
-import org.json.JSONArray;
+import Project.Persistent.SQL.PositionPersistent;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -48,12 +44,14 @@ public class InformationController {
     PersonPersistent personPersistent;
     @Autowired
     SchoolHandler schoolHandler;
+    @Autowired
+    PositionPersistent positionPersistent;
 
     @RequestMapping(value = "setTypeOfService", method = RequestMethod.POST)
     public
     @ResponseBody
     boolean setTypeOfService(@RequestParam(value = "typeOfService") TypeOfService typeOfService,
-                             @RequestParam(value = "personId") String personId
+                             @RequestParam(value = "personId") int personId
     ) {
         return studentHandler.setTypeOfService(typeOfService, personId);
     }
@@ -62,16 +60,27 @@ public class InformationController {
     public
     @ResponseBody
     ArrayList<Teacher> getTeachers(
-            @RequestParam(value = "personId") String personId
+            @RequestParam(value = "personId") int personId
     ) {
         return teacherHandler.getTeachersByStudentId(personId);
+    }
+
+    @RequestMapping(value = "getTeacherById", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    Person getPersonByPersonId(
+            @RequestParam(value = "personId") int personId
+    ) {
+        Person person =  personHandler.getPersonByPersonId(personId);
+        person.setAddresses(personPersistent.getPersonAddressesByPersonId(personId));
+        return person;
     }
 
     @RequestMapping(value = "getParents", method = RequestMethod.POST)
     public
     @ResponseBody
     ArrayList<Parent> getParents( // method body not yet finished
-                                  @RequestParam(value = "personId") String personId
+                                  @RequestParam(value = "personId") int personId
     ) {
         return parentHandler.getParentsByStudentId(personId);
     }
@@ -80,7 +89,7 @@ public class InformationController {
     public
     @ResponseBody
     Driver showDriverDetail( // method body not yet finished
-                             @RequestParam(value = "carNumber") String carNumber //teacher or parent
+                             @RequestParam(value = "carId") int carId//teacher or parent
     ) {
         return null; // returns all students, their teacher (if id is from parent) / their parent (if id is from  teacher)
         // and Bus where they are  ( with button to show the drivers)
@@ -91,7 +100,7 @@ public class InformationController {
     public
     @ResponseBody
     ArrayList<Student> getAllStudent(
-            @RequestParam(value = "personId") String personId //teacher or parent
+            @RequestParam(value = "personId") int personId //teacher or parent
     ) {
         return studentHandler.getAllStudentByPersonId(personId);
     }
@@ -100,7 +109,7 @@ public class InformationController {
     public
     @ResponseBody
     Student getStudent(
-            @RequestParam(value = "personId") String personId //personId of a student
+            @RequestParam(value = "personId") int personId //personId of a student
     ) {
         return studentHandler.getStudentByPersonId(personId);
     }
@@ -109,13 +118,22 @@ public class InformationController {
     public
     @ResponseBody
     String getPassenger(
-            @RequestParam(value = "carNumber") String carNumber //personId of a driver
+            @RequestParam(value = "carId") int carId //personId of a driver
     ) {
-        ArrayList<Student> students = studentHandler.getCurrentAllStudentByCarNumber(carNumber);
-        ArrayList<Teacher> teachers = teacherHandler.getCurrentAllTeacherByCarNumber(carNumber);
+        //ArrayList<Student> students = studentHandler.getCurrentAllStudentByCarId(carId);
+        ArrayList<Student> students = studentHandler.getAllStudentInCurrentTrip(carId);
+        for (Student it : students) {
+            IsInBus inBus = positionPersistent.isInBus(it.getId());
+            it.setInBus(inBus);
+            it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
+        }
+        Driver driver = driverHandler.getLatestDriverInBusByCarId(carId);
+        driver.setAddresses(personPersistent.getPersonAddressesByPersonId(driver.getId()));
+        ArrayList<Teacher> teachers = teacherHandler.getCurrentAllTeacherByCarId(carId);
         JSONObject studentsJSON = objectToJSON.arrayListToJSON("students", students);
         JSONObject teachersJSON = objectToJSON.arrayListToJSON("teachers", teachers);
-        JSONObject result = objectToJSON.mergeJSONObjects(studentsJSON, teachersJSON);
+        JSONObject driverJSON = objectToJSON.mapToJSON("driver", driver);
+        JSONObject result = objectToJSON.mergeJSONObjects(studentsJSON, teachersJSON, driverJSON);
         if (result != null) {
             return result.toString();
         }
@@ -123,24 +141,24 @@ public class InformationController {
     }
 
     @RequestMapping(value = "addStudentsTrip", method = RequestMethod.POST)
-    boolean addStudentsTrip(
-                    @RequestParam(value = "personIds") ArrayList<String> personIds,
-                    @RequestParam(value = "carNumber") String carNumber
+    boolean addStudentsTrip( //synchronization problem
+                    @RequestParam(value = "personIds") ArrayList<Integer> personIds,
+                    @RequestParam(value = "carId") int carId
             ){
-        return studentHandler.addStudentsTrip(personIds, carNumber);
+        return studentHandler.addStudentsTrip(personIds, carId);
     }
 
     @RequestMapping(value = "getAllStudentInBus", method = RequestMethod.POST)
     public
     @ResponseBody
     String getAllStudentInBus(
-            @RequestParam(value = "carNumber") String carNumber //personId of a driver
+            @RequestParam(value = "carId") int carId//personId of a driver
     ) {
-        ArrayList<Student>  students = studentHandler.getCurrentAllStudentByCarNumber(carNumber);
+        ArrayList<Student>  students = studentHandler.getCurrentAllStudentByCarId(carId);
         for (Student it : students) {
             it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
         }
-        boolean isEvery = studentHandler.isEveryStudentGetsOnTheBus(carNumber);
+        boolean isEvery = studentHandler.isEveryStudentGetsOnTheBus(carId);
         String isEveryResult = "{ \"isEvery\":"+isEvery+"}";
         JSONObject studentsJSON = objectToJSON.arrayListToJSON("students", students);
         JSONObject result = objectToJSON.mergeJSONObjects(studentsJSON, new JSONObject(isEveryResult));
@@ -162,19 +180,25 @@ public class InformationController {
     @RequestMapping(value = "getBusDetail", method = RequestMethod.POST)
     public
     @ResponseBody
-    JSONObject getBusDetail(
-            @RequestParam(value = "personId") String personId
+    String getBusDetail(
+            @RequestParam(value = "personId") int personId
     ) {
-        Bus bus = busHandler.getCurrentBusCarNumberByStudentId(personId); //latest time in the log
-        ArrayList<Timestamp> startAndEndPeriod = positionHandler.getCurrentStartAndEndPeriodByStudentId(bus.getCarNumber(), personId);
-        ArrayList<Teacher> teachers = teacherHandler.getCurrentTeacherInBusByCarNumber(bus.getCarNumber(), startAndEndPeriod); // between that trip
-        Driver driver = driverHandler.getCurrentDriverInBusByCarNumber(bus.getCarNumber(), startAndEndPeriod); //there is always one driver
-        JSONObject busJSON = objectToJSON.mapToJSON("bus", bus);
-        JSONObject teachersJSON = objectToJSON.arrayListToJSON("teachers", teachers);
-        JSONObject driverJSON = objectToJSON.mapToJSON("driver", driver);
-        JSONObject result = objectToJSON.mergeJSONObjects(busJSON, teachersJSON, driverJSON);
-        if (result != null) {
-            return result;
+        Bus bus = busHandler.getCurrentBusCarIdByStudentId(personId);//latest time in the log
+        if(bus != null) {
+            bus.setCarNumber(busHandler.getBusCarNumberByCarId(bus.getCarId()));
+            ArrayList<Timestamp> startAndEndPeriod = positionHandler.getCurrentStartAndEndPeriodByStudentId(bus.getCarId(), personId);
+            ArrayList<Teacher> teachers = teacherHandler.getCurrentTeacherInBusByCarId(bus.getCarId(), startAndEndPeriod); // between that trip
+            Student student = studentHandler.getStudentByPersonId(personId);
+            student.setAddresses(personPersistent.getPersonAddressesByPersonId(personId));
+            Driver driver = driverHandler.getCurrentDriverInBusByCarId(bus.getCarId(), startAndEndPeriod); //there is always one driver
+            JSONObject studentJSON = objectToJSON.mapToJSON("student", student);
+            JSONObject busJSON = objectToJSON.mapToJSON("bus", bus);
+            JSONObject teachersJSON = objectToJSON.arrayListToJSON("teachers", teachers);
+            JSONObject driverJSON = objectToJSON.mapToJSON("driver", driver);
+            JSONObject result = objectToJSON.mergeJSONObjects(busJSON, teachersJSON, driverJSON, studentJSON);
+            if(result != null){
+                return result.toString();
+            }
         }
         return null;
     }
@@ -183,10 +207,40 @@ public class InformationController {
     public
     @ResponseBody
     Boolean updateFireBaseToken(
-            @RequestParam(value = "personId") String personId,
+            @RequestParam(value = "personId") int personId,
             @RequestParam(value = "token") String token
     ) {
         return personHandler.updateFireBaseToken(personId, token);
+    }
+
+    @RequestMapping(value = "addParentAndStudentRelationships", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    Boolean addParentAndStudentRelationships(
+            @RequestParam(value = "personPId") int personPId,
+            @RequestParam(value = "personSIds") ArrayList<Integer> personSIds
+    ) {
+        return parentHandler.addParentAndStudentRelationships(personPId, personSIds);
+    }
+
+    @RequestMapping(value = "addTeacherAndStudentRelationships", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    Boolean addTeacherAndStudentRelationships(
+            @RequestParam(value = "personTId") int personPId,
+            @RequestParam(value = "personSIds") ArrayList<Integer> personSIds,
+            @RequestParam(value = "classRoomName") String classRoomName
+    ) {
+        return teacherHandler.addTeacherAndStudentRelationships(personPId, personSIds, classRoomName);
+    }
+
+    @RequestMapping(value = "getAllStudentInCurrentTrip", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    ArrayList<Student> getAllStudentInCurrentTrip(
+        @RequestParam(value = "carId") int carId
+    ){
+        return studentHandler.getAllStudentInCurrentTrip(carId);
     }
 
 }

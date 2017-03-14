@@ -14,7 +14,7 @@ public class TeacherMapper implements RowMapper<Teacher> {
 
     @Override
     public Teacher mapRow(ResultSet rs, int rowNum) throws SQLException {
-        return new Teacher(Role.valueOf(rs.getString("role")), rs.getString("personId"), null, rs.getString("token"), rs.getString("tel"),
+        return new Teacher(Role.valueOf(rs.getString("role")), rs.getInt("personId"), null, rs.getString("token"), rs.getString("tel"),
                 rs.getString("username"), rs.getString("name"), rs.getString("surName"), rs.getString("facebookId"), null);
     }
 

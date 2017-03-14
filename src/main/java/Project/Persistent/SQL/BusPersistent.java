@@ -22,11 +22,11 @@ public class BusPersistent extends JdbcTemplate {
         this.setDataSource(mainDataSource);
     }
 
-    public Bus getCurrentBusCarNumberByStudentId(String personId) {
+    public Bus getCurrentBusCarIdByStudentId(int personId) {
         Bus result;
         try {
-            result = queryForObject("SELECT carNumber FROM PersonInBus where atTime = (SELECT MAX(atTime) FROM PersonInBus WHERE personId = ? LIMIT 1) " +
-                    "AND PersonId = ?" +
+            result = queryForObject("SELECT carId FROM PersonInBus WHERE atTime IN (SELECT MAX(atTime) FROM PersonInBus WHERE personId = ?) " +
+                    "AND PersonId = ? " +
                     "AND enterTime = (SELECT MAX(enterTime) FROM personInBus WHERE personId = ? AND atTime = (SELECT MAX(atTime) from PersonInBus Where personId = ?) )", new BusMapper(), personId, personId, personId, personId);
         } catch (Exception e) {
             e.printStackTrace();
@@ -35,10 +35,10 @@ public class BusPersistent extends JdbcTemplate {
         return result;
     }
 
-    public Bus getBusCarNumberByStudentIdAndAtTime(String personId, Timestamp atTime) {
+    public Bus getBusCarIdByStudentIdAndAtTime(int personId, Timestamp atTime) {
         Bus result;
         try {
-            result = queryForObject("SELECT carNumber FROM PersonInBus where personId = ? AND enterTime = (SELECT MAX(enterTime) from personinbus WHERE atTime = ? and personId = ?) AND atTime = ?", new BusMapper(), personId, atTime, personId, atTime);
+            result = queryForObject("SELECT carId FROM PersonInBus where personId = ? AND enterTime = (SELECT MAX(enterTime) from personinbus WHERE atTime = ? and personId = ?) AND atTime = ?", new BusMapper(), personId, atTime, personId, atTime);
         } catch (Exception e) {
             e.printStackTrace();
             result = null;
@@ -46,13 +46,13 @@ public class BusPersistent extends JdbcTemplate {
         return result;
     }
 
-    public Bus getCurrentBusPosition(String carNumber) {
+    public Bus getCurrentBusPosition(int carId) {
         Bus result;
         try {
             result = queryForObject("SELECT * FROM BusPosition WHERE atTime = " +
-                            "(SELECT MAX(atTime) FROM BusPosition WHERE carNumber = ? )", (rs, rowNum) ->
-                            new Bus(rs.getString("carNumber"), rs.getDouble("latitude"), rs.getDouble("longitude"))
-                    , carNumber);
+                            "(SELECT MAX(atTime) FROM BusPosition WHERE carId = ? )", (rs, rowNum) ->
+                            new Bus(rs.getInt("carId"), rs.getDouble("latitude"), rs.getDouble("longitude"))
+                    , carId);
         } catch (Exception e) {
             e.printStackTrace();
             result = null;
@@ -61,22 +61,31 @@ public class BusPersistent extends JdbcTemplate {
     }
 
     public ArrayList<Bus> getAllBus() {
-        return new ArrayList<>(query("SELECT * FROM BUS ORDER BY carNumber", (rs, rowNum) ->
-                new Bus(rs.getString("carNumber"), rs.getDouble("averageVelocity"), rs.getInt("checkPointPassed"))));
+        return new ArrayList<>(query("SELECT * FROM BUS ORDER BY carId", (rs, rowNum) ->
+                new Bus(rs.getInt("carId"), rs.getString("carNumber"), rs.getDouble("averageVelocity"), rs.getInt("checkPointPassed"))));
     }
 
-    public boolean setVelocityToZero(String carNumber) {
-        return update("UPDATE bus SET averageVelocity = 0, checkPointPassed = 0 WHERE carNumber = ? ", carNumber) == 1;
+    public boolean setVelocityToZero(int carId) {
+        return update("UPDATE bus SET averageVelocity = 0, checkPointPassed = 0 WHERE carId = ? ", carId) == 1;
     }
-    public boolean setVelocityAndCheckPointPassed(String carNumber, double averageVelocity, int checkPointPassed){
-        return update("UPDATE bus SET averageVelocity = ?, checkPointPassed = ? WHERE carNumber = ? ", averageVelocity, checkPointPassed, carNumber) == 1;
-    }
-
-    public double getAverageVelocity(String carNumber){
-        return queryForObject("SELECT averageVelocity FROM bus WHERE carNumber = ?", Double.class, carNumber);
+    public boolean setVelocityAndCheckPointPassed(int carId, double averageVelocity, int checkPointPassed){
+        return update("UPDATE bus SET averageVelocity = ?, checkPointPassed = ? WHERE carId = ? ", averageVelocity, checkPointPassed, carId) == 1;
     }
 
-    public int getCheckPointPassed(String carNumber){
-        return queryForObject("SELECT checkPointPassed FROM bus WHERE carNumber = ?", Integer.class, carNumber);
+    public double getAverageVelocity(int carId){
+        return queryForObject("SELECT averageVelocity FROM bus WHERE carId = ?", Double.class, carId);
+    }
+
+    public int getCheckPointPassed(int carId){
+        return queryForObject("SELECT checkPointPassed FROM bus WHERE carId = ?", Integer.class, carId);
+    }
+
+    public String getBusCarNumberByCarId(int carId){
+        try {
+            return queryForObject("SELECT carNumber FROM bus WHERE carId = ?", String.class, carId);
+        }catch (Exception e){
+            e.printStackTrace();
+            return  null;
+        }
     }
 }

@@ -18,11 +18,21 @@ public class ParentHandler {
     @Autowired
     PersonPersistent personPersistent;
 
-    public ArrayList<Parent> getParentsByStudentId(String personId) {
+    public ArrayList<Parent> getParentsByStudentId(int personId) {
         ArrayList<Parent> parents = parentPersistent.getParentsByStudentId(personId);
         for (Parent it : parents) {
             it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
         }
         return parents;
+    }
+
+    public boolean addParentAndStudentRelationships(int personPId, ArrayList<Integer> personSIds){
+        boolean result = true;
+        for(int it: personSIds) {
+            if(!parentPersistent.addParentAndStudentRelationship(personPId,it)){
+                result = false;
+            }
+        }
+        return result;
     }
 }

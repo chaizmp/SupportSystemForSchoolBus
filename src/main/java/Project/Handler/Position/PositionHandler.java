@@ -1,17 +1,17 @@
 package Project.Handler.Position;
 
 import Project.Handler.ApiCalls.ApiCall;
-import Project.Handler.Information.BusHandler;
-import Project.Handler.Information.PersonHandler;
-import Project.Handler.Information.StudentHandler;
+import Project.Handler.Information.*;
 import Project.Model.Enumerator.IsInBus;
 import Project.Model.Enumerator.Status;
 import Project.Model.Enumerator.Type;
 import Project.Model.Enumerator.TypeOfService;
 import Project.Model.Notification.NotificationForm;
 import Project.Model.Notification.NotificationMessage;
+import Project.Model.Person.Driver;
 import Project.Model.Person.Person;
 import Project.Model.Person.Student;
+import Project.Model.Person.Teacher;
 import Project.Model.Position.Bus;
 import Project.Model.Position.Position;
 import Project.Model.Position.Route;
@@ -24,8 +24,9 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Calendar;
 import java.util.GregorianCalendar;
+import java.util.List;
 
-;
+;import static java.util.stream.Collectors.toList;
 
 /**
  * Created by User on 6/1/2560.
@@ -43,28 +44,33 @@ public class PositionHandler {
     StudentHandler studentHandler;
     @Autowired
     BusHandler busHandler;
+    @Autowired
+    TeacherHandler teacherHandler;
+    @Autowired
+    DriverHandler driverHandler;
 
-    public ArrayList<Timestamp> getCurrentStartAndEndPeriodByStudentId(String carNumber, String personId) {
+    public ArrayList<Timestamp> getCurrentStartAndEndPeriodByStudentId(int carId, int personId) {
         ArrayList<Timestamp> period = new ArrayList<>();
         Timestamp atTime = positionPersistent.getLatestAtTimeByStudentId(personId);
-        period.add(positionPersistent.getTripStartTimeInPersonInBus(carNumber, atTime));
-        period.add(positionPersistent.getTripFinishTimeInPersonInBus(carNumber, atTime));
+        period.add(positionPersistent.getTripStartTimeInPersonInBus(carId, atTime));
+        period.add(positionPersistent.getTripFinishTimeInPersonInBus(carId, atTime));
         return period;
     }
 
-    public Timestamp getLatestAtTimeByStudentId(String personId) {
+    public Timestamp getLatestAtTimeByStudentId(int personId) {
         return positionPersistent.getLatestAtTimeByStudentId(personId);
     }
 
-    public ArrayList<Position> getActualRouteInTripByAtTime(String carNumber, Timestamp atTime) {
-        Timestamp startTime = positionPersistent.getTripStartTimeInBusPosition(carNumber, atTime);
-        Timestamp endTime = positionPersistent.getTripFinishTimeInBusPosition(carNumber, atTime);
-        return positionPersistent.getActualRouteInBusByPeriod(carNumber, startTime, endTime);
+    public ArrayList<Position> getActualRouteInTripByAtTime(int carId, Timestamp atTime) {
+        Timestamp startTime = positionPersistent.getTripStartTimeInBusPosition(carId, atTime);
+        Timestamp endTime = positionPersistent.getTripFinishTimeInBusPosition(carId, atTime);
+        return positionPersistent.getActualRouteInBusByPeriod(carId, startTime, endTime);
     }
 
-    public boolean addBusPosition(String carNumber, double latitude, double longitude, Status status) {
-        return positionPersistent.addBusPosition(carNumber, latitude, longitude, status);
+    public boolean addBusPosition(int carId, double latitude, double longitude, Status status) {
+        return positionPersistent.addBusPosition(carId, latitude, longitude, status);
     }
+
 
     public Integer addRoute(ArrayList<Double> latitudes, ArrayList<Double> longitudes, Type type) {
         return positionPersistent.addRoute(latitudes, longitudes, type);
@@ -74,8 +80,8 @@ public class PositionHandler {
         return positionPersistent.deleteRoute(routeNumber);
     }
 
-    public boolean setBusRoute(String carNumber, int routeNumber) {
-        return positionPersistent.setBusRoute(carNumber, routeNumber);
+    public boolean setBusRoute(int carId, int routeNumber) {
+        return positionPersistent.setBusRoute(carId, routeNumber);
     }
 
     public ArrayList<Route> getAllBusRoute() {
@@ -115,7 +121,7 @@ public class PositionHandler {
     public ArrayList<Bus> getAllCurrentBusPosition() {
         ArrayList<Bus> busList = busHandler.getAllBus();
         for (Bus it : busList) {
-            SqlRowSet sqlRowSet = positionPersistent.getBusRouteByCarNumber(it.getCarNumber());
+            SqlRowSet sqlRowSet = positionPersistent.getBusRouteByCarId(it.getCarId());
             Route route = new Route();
             ArrayList<Double> latitudes = new ArrayList<>();
             ArrayList<Double> longitudes = new ArrayList<>();
@@ -128,16 +134,16 @@ public class PositionHandler {
             route.setLatitudes(latitudes);
             route.setLongitudes(longitudes);
             it.setCurrentRoute(route);
-            Position position = positionPersistent.getCurrentBusPosition(it.getCarNumber());
+            Position position = positionPersistent.getCurrentBusPosition(it.getCarId());
             it.setCurrentLatitude(position.getLatitude());
             it.setCurrentLongitude(position.getLongitude());
         }
         return busList;
     }
 
-    public boolean getOnOrOffBus(String carNumber, String personId, Double latitude, Double longitude) {
+    public boolean getOnOrOffBus(int carId, int personId, Double latitude, Double longitude, boolean isStudent) {
 
-        // don't forget that bus driver isn't the last person. we count only the students.
+        // don't forget that the bus driver isn't the last person. we count only the students.
         IsInBus isInBus = positionPersistent.isInBus(personId);
         String onOrOff = "OFF";
         if (isInBus == IsInBus.NO) {
@@ -146,63 +152,82 @@ public class PositionHandler {
         } else {
             isInBus = IsInBus.NO;
         }
-        Student student = studentHandler.getStudentByPersonId(personId);
-        ArrayList<Person> userRelatedToStudent = personHandler.getPersonsRelatedToStudent(personId);
-        String studentName = student.getFirstName();
-        String surname = student.getSurName();
         Status status;
-        Calendar c = new GregorianCalendar();
-        c.set(Calendar.HOUR_OF_DAY, 12); //anything 0 - 23
-        c.set(Calendar.MINUTE, 0);
-        c.set(Calendar.SECOND, 0);
-        Timestamp time = new Timestamp(c.getTimeInMillis());
-        c.set(Calendar.HOUR_OF_DAY, 0);
-        Timestamp now = new Timestamp(System.currentTimeMillis());
-        Timestamp midNight = new Timestamp(c.getTimeInMillis());
-        if (positionPersistent.isFirstPerson(carNumber, now, time, midNight)) {
+        Student student;
+        ArrayList<Person> userRelatedToStudent = new ArrayList<>();
+        String studentName = "";
+        String surname = "";
+        Timestamp time, now, midNight;
+        if(isStudent) {
+            student = studentHandler.getStudentByPersonId(personId);
+            userRelatedToStudent = personHandler.getPersonsRelatedToStudent(personId);
+            studentName = student.getFirstName();
+            surname = student.getSurName();
+        }
+            Calendar c = new GregorianCalendar();
+            c.set(Calendar.HOUR_OF_DAY, 12); //anything 0 - 23
+            c.set(Calendar.MINUTE, 0);
+            c.set(Calendar.SECOND, 0);
+            time = new Timestamp(c.getTimeInMillis());
+            c.set(Calendar.HOUR_OF_DAY, 0);
+            now = new Timestamp(System.currentTimeMillis());
+            midNight = new Timestamp(c.getTimeInMillis());
+
+        if (positionPersistent.isFirstPerson(carId, now, time, midNight)) {
             status = Status.PERSONSTART;
-            positionPersistent.addBusPosition(carNumber, latitude, longitude, status);
+            positionPersistent.addBusPosition(carId, latitude, longitude, status);
             status = Status.START;
             // can be the driver
-        } else if (isInBus == IsInBus.NO && isLastPerson(personId, carNumber, now, time, midNight)) {
+        } else if (isStudent && isInBus == IsInBus.NO && isLastPerson(personId, carId, now, time, midNight)) {
+            ArrayList<Timestamp> startAndEndPeriod = getCurrentStartAndEndPeriodByStudentId(carId, personId);
+            ArrayList<Teacher> teachers = teacherHandler.getCurrentTeacherInBusByCarId(carId, startAndEndPeriod);
+            Driver driver = driverHandler.getCurrentDriverInBusByCarId(carId, startAndEndPeriod);
+            for(Teacher it: teachers) {
+                getOnOrOffBus(carId,it.getId(), latitude, longitude, false);
+            }
+            getOnOrOffBus(carId,driver.getId(), latitude, longitude, false);
             status = Status.FINISH;
-            positionPersistent.addBusPosition(carNumber, latitude, longitude, status);
-            busHandler.setVelocityToZero(carNumber);
+            positionPersistent.addBusPosition(carId, latitude, longitude, status);
+            studentHandler.addStudentsTrip(studentHandler.getAllStudentsUsedToBeOnBusInCurrentTrip(carId, now, time, midNight), -1);
+            busHandler.setVelocityToZero(carId);
             // the last student not the driver
         } else {
             status = Status.NONE;
         }
-        int enterTime = positionPersistent.latestEnterTime(personId, carNumber /*, now, time, midNight */) + 1;
-        positionPersistent.getOnOrOffBus(carNumber, personId, latitude, longitude, isInBus, status, enterTime);
-        for (Person it : userRelatedToStudent) {
-            NotificationMessage notificationMessage = new NotificationMessage();
-            NotificationForm notificationForm = new NotificationForm();
-            notificationForm.setTitle("Support System For School Bus");
-            notificationForm.setBody("Your student, " + studentName + " " + surname + " " + ", has just get " + onOrOff + "The Bus Number" + carNumber);
-            notificationMessage.setNotificationForm(notificationForm);
-            notificationMessage.setTo(it.getToken());
-            apiCall.sendGetOnOrOffNotificationToPersons(notificationMessage);
+        int enterTime = positionPersistent.latestEnterTime(personId, carId /*, now, time, midNight */) + 1;
+        positionPersistent.getOnOrOffBus(carId, personId, latitude, longitude, isInBus, status, enterTime);
+        if(isStudent) {
+            for (Person it : userRelatedToStudent) {
+                NotificationMessage notificationMessage = new NotificationMessage();
+                NotificationForm notificationForm = new NotificationForm();
+                notificationForm.setTitle("Support System For School Bus");
+                notificationForm.setBody("Your student, " + studentName + " " + surname + " " + ", has just get " + onOrOff + "The Bus Number" + carId);
+                notificationMessage.setNotification(notificationForm);
+                notificationMessage.setTo(it.getToken());
+                apiCall.sendGetOnOrOffNotificationToPersons(notificationMessage);
+            }
         }
         return isInBus != IsInBus.YES;
     }
 
-    public boolean isLastPerson(String personId, String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight) {
+    public boolean isLastPerson(int personId, int carId, Timestamp now, Timestamp lunch, Timestamp midNight) {
         TypeOfService typeOfService;
         if (now.getTime() >= lunch.getTime()) {
             typeOfService = TypeOfService.BACK;
         } else {
             typeOfService = TypeOfService.GO;
         }
-        int studentNumber = studentHandler.getNumberOfStudentInCurrentTrip(carNumber, typeOfService);
-        int studentNotInCarNumber = studentHandler.getNumberOfStudentGetOutInCurrentTripExceptPersonId(personId, carNumber, now, lunch, midNight);
-        return studentNumber - 1 == studentNotInCarNumber;
+        int studentNumber = studentHandler.getNumberOfStudentInCurrentTrip(carId, typeOfService);
+        int studentNotInCarId = studentHandler.getNumberOfStudentGetOutInCurrentTripExceptPersonId(personId, carId, now, lunch, midNight);
+        return studentNumber - 1 == studentNotInCarId;
     }
 
-    public void setVelocity(String carNumber, double previousLatitude, double previousLongitude, double newLatitude, double newLongitude) {
-        double oldAverageVelocity = busHandler.getAverageVelocity(carNumber);
-        int checkPointPassed = busHandler.getCheckPointPassed(carNumber)+1;
+    public double setVelocity(int carId, double previousLatitude, double previousLongitude, double newLatitude, double newLongitude) {
+        double oldAverageVelocity = busHandler.getAverageVelocity(carId);
+        int checkPointPassed = busHandler.getCheckPointPassed(carId)+1;
         double averageVelocity = getAverageVelocity(oldAverageVelocity,checkPointPassed, previousLatitude, previousLongitude, newLatitude, newLongitude);
-        busHandler.setVelocityAndCheckPointPassed(carNumber, averageVelocity, checkPointPassed);
+        busHandler.setVelocityAndCheckPointPassed(carId, averageVelocity, checkPointPassed);
+        return averageVelocity;
     }
 
     public double getAverageVelocity(double oldAverageVelocity, int checkPointPassed, double previousLatitude, double previousLongitude, double newLatitude, double newLongitude){
@@ -219,8 +244,8 @@ public class PositionHandler {
         return d;
     }
 
-    public Route getBusCurrentRoute(String carNumber){
-        SqlRowSet sqlRowSet = positionPersistent.getBusRouteByCarNumber(carNumber);
+    public Route getBusRoutinelyUsedRoute(int carId){
+        SqlRowSet sqlRowSet = positionPersistent.getBusRouteByCarId(carId);
         Route route = new Route();
         ArrayList<Double> latitudes = new ArrayList<>();
         ArrayList<Double> longitudes = new ArrayList<>();

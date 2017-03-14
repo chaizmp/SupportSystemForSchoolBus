@@ -1,8 +1,11 @@
 package Project.Model.Position;
 
+import lombok.Data;
+
 /**
  * Created by User on 1/1/2560.
  */
+@Data
 public class Address {
     private String detail;
     private double latitude;
@@ -11,30 +14,6 @@ public class Address {
     public Address(String detail, double latitude, double longitude) {
         this.detail = detail;
         this.latitude = latitude;
-        this.longitude = longitude;
-    }
-
-    public String getDetail() {
-        return detail;
-    }
-
-    public void setDetail(String detail) {
-        this.detail = detail;
-    }
-
-    public double getLatitude() {
-        return latitude;
-    }
-
-    public void setLatitude(double latitude) {
-        this.latitude = latitude;
-    }
-
-    public double getLongitude() {
-        return longitude;
-    }
-
-    public void setLongitude(double longitude) {
         this.longitude = longitude;
     }
 }

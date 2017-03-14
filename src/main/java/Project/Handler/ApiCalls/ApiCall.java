@@ -1,12 +1,14 @@
 package Project.Handler.ApiCalls;
 
 import Project.Model.Notification.NotificationMessage;
+import com.google.gson.JsonObject;
 import org.springframework.stereotype.Service;
 import retrofit2.Call;
 import retrofit2.Response;
 import retrofit2.Retrofit;
 import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.http.Body;
+import retrofit2.http.GET;
 import retrofit2.http.Headers;
 import retrofit2.http.POST;
 
@@ -18,33 +20,45 @@ import java.util.List;
  */
 @Service
 public class ApiCall {
-
     public FireBaseService fireBaseService;
+    public CameraService cameraService;
 
     interface FireBaseService {
         @Headers({
-                "Authorizationt: application/vnd.github.v3.full+json",
+                "Authorization: key=AAAAtg0JKE8:APA91bHzdV7qCSl35IswRuPhDbwEkTamirIJgjLsUdj5XnvZeGh--3Ex2fQU96JrHzVUmJEamZJMf1a72dDiNJXU8tgjIXIYqNyqMoQ1yJ4mAQFAlKSyFFCGwkV9i_psUWq_nyiCl7YR",
                 "Content-Type: application/json"
         })
         @POST("/fcm/send")
-        Call<List<String>> sendNotification(@Body NotificationMessage notificationMessage);
+        Call<JsonObject> sendNotification(@Body NotificationMessage notificationMessage);
+    }
+
+    interface CameraService {
+        @GET("/snapshot.cgi?user=admin&pwd=sakchailab606")
+        Call<JsonObject> getSnapshot();
     }
 
     public ApiCall() {
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://fcm.googleapis.com/")
+                .baseUrl("http://fcm.googleapis.com/")
                 .addConverterFactory(GsonConverterFactory.create())
                 .build();
         fireBaseService = retrofit.create(FireBaseService.class);
+
+        Retrofit retrofit2 = new Retrofit.Builder()
+                .baseUrl("http://192.168.1.11:81/")
+                .addConverterFactory(GsonConverterFactory.create())
+                .build();
+        cameraService = retrofit2.create(CameraService.class);
+
     }
 
     public String sendGetOnOrOffNotificationToPersons(NotificationMessage notificationMessage) {
-        Call<List<String>> call = fireBaseService.sendNotification(notificationMessage);
+        Call<JsonObject> call = fireBaseService.sendNotification(notificationMessage);
         try {
-            Response<List<String>> response = call.execute();
+            Response<JsonObject> response = call.execute();
             if (response.isSuccessful()) {
-                System.out.println(response.body().get(0));
-                return response.body().get(0);
+                System.out.println(response.body().toString());
+                return response.body().toString();
             } else {
                 System.out.println(response.errorBody().string());
             }
@@ -72,5 +86,21 @@ public class ApiCall {
 
     public boolean alarmNotification() {
         return true;
+    }
+
+    public String getPicFromCamera() {
+        Call<JsonObject> call = cameraService.getSnapshot();
+        try {
+            Response<JsonObject> response = call.execute();
+            if (response.isSuccessful()) {
+                System.out.println(response.body().toString());
+                return response.body().toString();
+            } else {
+                System.out.println(response.errorBody().string());
+            }
+        } catch (IOException e) {
+            System.out.println(e.getLocalizedMessage());
+        }
+        return null;
     }
 }

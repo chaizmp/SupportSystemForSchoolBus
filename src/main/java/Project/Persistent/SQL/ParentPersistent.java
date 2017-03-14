@@ -22,9 +22,27 @@ public class ParentPersistent extends JdbcTemplate {
         this.setDataSource(mainDataSource);
     }
 
-    public ArrayList<Parent> getParentsByStudentId(String personId) {
+    public ArrayList<Parent> getParentsByStudentId(int personId) {
         List<Parent> parentList = query("SELECT * FROM Person,Parent WHERE Person.personId = Parent.personId and Person.personId in (" +
                 "SELECT personPId from Family WHERE personSID = ? )", new ParentMapper(), personId);
         return new ArrayList<>(parentList);
+    }
+
+    public boolean addParent(int personId){
+        try{
+            return update("INSERT INTO parent(personId) VALUE(?)", personId) == 1;
+        }catch (Exception e){
+            e.printStackTrace();
+            return  false;
+        }
+    }
+
+    public boolean addParentAndStudentRelationship(int personPId, int personSId){
+        try{
+            return update("INSERT INTO family(personPId, personSid) VALUES(?, ?)", personPId, personSId) == 1;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
     }
 }

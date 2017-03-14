@@ -1,13 +1,18 @@
 package Project.Controller;
 
 import Project.Handler.Information.BusHandler;
+import Project.Handler.Information.PersonHandler;
 import Project.Handler.Information.StudentHandler;
+import Project.Handler.Notification.NotificationHandler;
 import Project.Handler.Position.PositionHandler;
 import Project.Model.Enumerator.Status;
 import Project.Model.Enumerator.Type;
+import Project.Model.Person.Person;
+import Project.Model.Person.Student;
 import Project.Model.Position.Bus;
 import Project.Model.Position.Position;
 import Project.Model.Position.Route;
+import Project.Persistent.SQL.PersonPersistent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -27,14 +32,22 @@ public class PositionController {
     StudentHandler studentHandler;
     @Autowired
     PositionHandler positionHandler;
+    @Autowired
+    PersonPersistent personPersistent;
+    @Autowired
+    PersonHandler personHandler;
+    @Autowired
+    NotificationHandler notificationHandler;
 
     @RequestMapping(value = "getBusCurrentPosition", method = RequestMethod.POST)
     public
     @ResponseBody
     Bus getBusCurrentPosition(
-            @RequestParam(value = "carNumber") String carNumber
+            @RequestParam(value = "carId") int carId
     ) {
-        return busHandler.getCurrentBusPosition(carNumber);
+        Bus bus =  busHandler.getCurrentBusPosition(carId);
+        bus.setCarNumber(busHandler.getBusCarNumberByCarId(carId));
+        return bus;
     }
 
     @RequestMapping(value = "timeEstimation", method = RequestMethod.POST)
@@ -42,7 +55,7 @@ public class PositionController {
     @ResponseBody
         // return type and body not yet finished
     String timeEstimation(
-            @RequestParam(value = "carNumber") String carNumber
+            @RequestParam(value = "carId") int carId
     ) {
         return "hello";
     }
@@ -50,12 +63,12 @@ public class PositionController {
     @RequestMapping(value = "getCurrentRoute", method = RequestMethod.POST)
     public
     @ResponseBody
-    ArrayList<Position> getCurrentRoute( //get all possible route to the student's home or the school
-                                         @RequestParam(value = "personId") String personId
+    ArrayList<Position> getCurrentRoute(
+                                         @RequestParam(value = "personId") int personId
     ) {
         Timestamp atTime = positionHandler.getLatestAtTimeByStudentId(personId);
-        String carNumber = busHandler.getBusCarNumberByStudentIdAndAtTime(personId, atTime).getCarNumber();
-        return positionHandler.getActualRouteInTripByAtTime(carNumber, atTime);
+        int carId = busHandler.getBusCarIdByStudentIdAndAtTime(personId, atTime).getCarId();
+        return positionHandler.getActualRouteInTripByAtTime(carId, atTime);
     }
 
     @RequestMapping(value = "addBusPosition", method = RequestMethod.POST)
@@ -63,14 +76,28 @@ public class PositionController {
     @ResponseBody
         // return type and body not yet finished
     boolean addBusPosition( //get all possible route to the student's home or the school
-                            @RequestParam(value = "carNumber") String carNumber,
+                            @RequestParam(value = "carId") int carId,
                             @RequestParam(value = "latitude") double latitude,
                             @RequestParam(value = "longitude") double longitude,
                             @RequestParam(value = "status") Status status
     ) {
-        boolean result = positionHandler.addBusPosition(carNumber, latitude, longitude, status);
-        Bus bus = busHandler.getCurrentBusPosition(carNumber);
-        positionHandler.setVelocity(carNumber, bus.getCurrentLatitude(), bus.getCurrentLongitude(), latitude, longitude);
+        Bus bus = busHandler.getCurrentBusPosition(carId);
+        boolean result = positionHandler.addBusPosition(carId, latitude, longitude, status);
+        double averageVelocity = positionHandler.setVelocity(carId, bus.getCurrentLatitude(), bus.getCurrentLongitude(), latitude, longitude);
+        Route route = busHandler.getBusRoutinelyUsedRoute(carId);
+        ArrayList<Student>  students = studentHandler.getCurrentAllStudentByCarId(carId);
+        for (Student student : students) {
+            student.setAddresses(personPersistent.getPersonAddressesByPersonId(student.getId()));
+            ArrayList<Person> persons = personHandler.getPersonsRelatedToStudent(student.getId());
+            double estimateTime = positionHandler.estimateTime(averageVelocity, student.getAddresses().get(0).getLatitude(), student.getAddresses().get(0).getLongitude(), latitude, longitude, route);
+            for(Person person: persons){
+                int duration = personHandler.getPersonAlarm(person.getId());
+                if(duration != -1 && estimateTime <= duration ){
+                    String carNumber = busHandler.getBusCarNumberByCarId(carId);
+                    notificationHandler.alarm(carNumber, person.getToken(), student.getFirstName(), student.getSurName());
+                }
+            }
+        }
         return result;
     }
 
@@ -79,12 +106,13 @@ public class PositionController {
     @ResponseBody
         // return type and body not yet finished
     boolean getOnOrOffBus( //get all possible route to the student's home or the school
-                            @RequestParam(value = "carNumber") String carNumber,
-                            @RequestParam(value = "personId") String personId,
+                            @RequestParam(value = "carId") int carId,
+                            @RequestParam(value = "personId") int personId,
                             @RequestParam(value = "latitude") double latitude,
-                            @RequestParam(value = "longitude") double longitude
+                            @RequestParam(value = "longitude") double longitude,
+                            @RequestParam(value = "isStudent") boolean isStudent
     ) {
-        return positionHandler.getOnOrOffBus(carNumber, personId, latitude, longitude);
+        return positionHandler.getOnOrOffBus(carId, personId, latitude, longitude, isStudent);
     }
 
     @RequestMapping(value = "addRoute", method = RequestMethod.POST)
@@ -120,30 +148,34 @@ public class PositionController {
     ArrayList<Bus> getAllCurrentBusPosition(
 
     ) {
-        return positionHandler.getAllCurrentBusPosition();
+        ArrayList<Bus> buses = positionHandler.getAllCurrentBusPosition();
+        for(Bus it: buses){
+            it.setCarNumber(busHandler.getBusCarNumberByCarId(it.getCarId()));
+        }
+        return buses;
     }
 
     @RequestMapping(value = "setBusRoute", method = RequestMethod.POST)
     public
     @ResponseBody
     boolean setBusRoute(
-            @RequestParam(value = "carNumber") String carNumber,
+            @RequestParam(value = "carId") int carId,
             @RequestParam(value = "routeNumber") int routeNumber
     ) {
-        return positionHandler.setBusRoute(carNumber, routeNumber);
+        return positionHandler.setBusRoute(carId, routeNumber);
     }
 
     @RequestMapping(value = "estimateTime", method = RequestMethod.POST)
     public
     @ResponseBody
     double setBusRoute(
-            @RequestParam(value = "carNumber") String carNumber,
+            @RequestParam(value = "carId") int carId,
             @RequestParam(value = "latitude") double latitude,
             @RequestParam(value = "longitude") double longitude
     ) {
-        Route route = busHandler.getBusCurrentRoute(carNumber);
-        Bus bus = busHandler.getCurrentBusPosition(carNumber);
-        double velocity = busHandler.getAverageVelocity(carNumber);
+        Route route = busHandler.getBusRoutinelyUsedRoute(carId);
+        Bus bus = busHandler.getCurrentBusPosition(carId);
+        double velocity = busHandler.getAverageVelocity(carId);
         if(velocity == 0){
             return -1;
         }

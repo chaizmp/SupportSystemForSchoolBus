@@ -36,27 +36,52 @@ public class StudentHandler {
     @Autowired
     BusPersistent busPersistent;
 
-    public boolean setTypeOfService(TypeOfService typeOfService, String personId) {
+    public boolean setTypeOfService(TypeOfService typeOfService, int personId) {
         return studentPersistent.setTypeOfService(typeOfService, personId);
     }
 
-    public ArrayList<Student> getAllStudentByPersonId(String personId) {
+    public ArrayList<Student> getAllStudentByPersonId(int personId) {
         ArrayList<Student> students = null;
-        Role role = studentPersistent.getRoleByPersonId(personId);
-        if (role != null) {
-            switch (role) {
-                case TEACHER:
-                    students = studentPersistent.getAllStudentByTeacherId(personId, "" + Calendar.getInstance().get(Calendar.YEAR));
-                    break;
-                case PARENT:
-                    students = studentPersistent.getAllStudentByParentId(personId);
-                    break;
-                case SCHOOLOFFICER:
-                    students = studentPersistent.getAllStudent();
-                    break;
-                default:
-                    break;
+        if(personId != -1) {
+            Role role = studentPersistent.getRoleByPersonId(personId);
+            if (role != null) {
+                switch (role) {
+                    case TEACHER:
+                        students = studentPersistent.getAllStudentByTeacherId(personId, "" + Calendar.getInstance().get(Calendar.YEAR));
+                        break;
+                    case PARENT:
+                        students = studentPersistent.getAllStudentByParentId(personId);
+                        break;
+                    case SCHOOLOFFICER:
+                        students = studentPersistent.getAllStudent();
+                        break;
+                    default:
+                        break;
+                }
+
+                for (Student it : students) {
+                    IsInBus inBus = positionPersistent.isInBus(it.getId());
+                    it.setInBus(inBus);
+                    it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
+                }
             }
+        }
+        else {
+            TypeOfService typeOfService;
+            Calendar c = new GregorianCalendar();
+            c.set(Calendar.HOUR_OF_DAY, 12); //anything 0 - 23
+            c.set(Calendar.MINUTE, 0);
+            c.set(Calendar.SECOND, 0);
+            Timestamp lunch = new Timestamp(c.getTimeInMillis());
+            c.set(Calendar.HOUR_OF_DAY, 0);
+            Timestamp now = new Timestamp(System.currentTimeMillis());
+            if(now.getTime() >= lunch.getTime()){
+                typeOfService = TypeOfService.BACK;
+            }
+            else{
+                typeOfService = TypeOfService.GO;
+            }
+            students = studentPersistent.getAllStudentByTypeOfService(typeOfService);
             for (Student it : students) {
                 IsInBus inBus = positionPersistent.isInBus(it.getId());
                 it.setInBus(inBus);
@@ -66,26 +91,26 @@ public class StudentHandler {
         return students;
     }
 
-    public Student getStudentByPersonId(String personId) {
+    public Student getStudentByPersonId(int personId) {
         Student student = studentPersistent.getStudentByPersonId(personId);
         IsInBus inBus = positionPersistent.isInBus(personId);
         student.setInBus(inBus);
         return student;
     }
 
-    public ArrayList<Student> getCurrentAllStudentByCarNumber(String carNumber) {
-        return studentPersistent.getCurrentAllStudentByCarNumber(carNumber);
+    public ArrayList<Student> getCurrentAllStudentByCarId(int carId) {
+        return studentPersistent.getCurrentAllStudentByCarId(carId);
     }
 
-    public int getNumberOfStudentInCurrentTrip(String carNumber, TypeOfService typeOfService) {
-        return studentPersistent.getNumberOfStudentInCurrentTrip(carNumber, typeOfService);
+    public int getNumberOfStudentInCurrentTrip(int carId, TypeOfService typeOfService) {
+        return studentPersistent.getNumberOfStudentInCurrentTrip(carId, typeOfService);
     }
 
-    public int getNumberOfStudentGetOutInCurrentTripExceptPersonId(String personId, String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight) {
-        return studentPersistent.getNumberOfStudentGetOutInCurrentTripExceptPersonId(personId, carNumber, now, lunch, midNight);
+    public int getNumberOfStudentGetOutInCurrentTripExceptPersonId(int personId, int carId, Timestamp now, Timestamp lunch, Timestamp midNight) {
+        return studentPersistent.getNumberOfStudentGetOutInCurrentTripExceptPersonId(personId, carId, now, lunch, midNight);
     }
 
-    public boolean isEveryStudentGetsOnTheBus(String carNumber){
+    public boolean isEveryStudentGetsOnTheBus(int carId){
         TypeOfService typeOfService;
         Calendar c = new GregorianCalendar();
         c.set(Calendar.HOUR_OF_DAY, 12); //anything 0 - 23
@@ -101,21 +126,43 @@ public class StudentHandler {
         else{
             typeOfService = TypeOfService.GO;
         }
-        int numStudentsInTrip = getNumberOfStudentInCurrentTrip(carNumber, typeOfService);
-        return getStudentsUsedToBeOnBusInCurrentTrip(carNumber, now, lunch, midNight) == numStudentsInTrip;
+        int numStudentsInTrip = getNumberOfStudentInCurrentTrip(carId, typeOfService);
+        return getStudentsUsedToBeOnBusInCurrentTrip(carId, now, lunch, midNight) == numStudentsInTrip;
     }
 
-    public int getStudentsUsedToBeOnBusInCurrentTrip(String carNumber, Timestamp now, Timestamp lunch, Timestamp midNight){
-        return positionPersistent.getStudentsUsedToBeOnBusInCurrentTrip(carNumber, now, lunch, midNight);
+    public int getStudentsUsedToBeOnBusInCurrentTrip(int carId, Timestamp now, Timestamp lunch, Timestamp midNight){
+        return positionPersistent.getStudentsUsedToBeOnBusInCurrentTrip(carId, now, lunch, midNight);
     }
 
-    public boolean addStudentsTrip(ArrayList<String> personIds, String carNumber){
+    public ArrayList<Integer> getAllStudentsUsedToBeOnBusInCurrentTrip(int carId, Timestamp now, Timestamp lunch, Timestamp midNight){
+        return new ArrayList<>(positionPersistent.getAllStudentsUsedToBeOnBusInCurrentTrip(carId, now, lunch, midNight));
+    }
+
+    public boolean addStudentsTrip(ArrayList<Integer> personIds, int carId){
         boolean result = true;
-        for(String it: personIds) {
-             if(!studentPersistent.addStudentsTrip(it, carNumber)){
+        for(int it: personIds) {
+             if(!studentPersistent.addStudentsTrip(it, carId)){
                  result= false;
              }
         }
         return result;
+    }
+
+    public ArrayList<Student> getAllStudentInCurrentTrip(int carId){
+        TypeOfService typeOfService;
+        Calendar c = new GregorianCalendar();
+        c.set(Calendar.HOUR_OF_DAY, 12); //anything 0 - 23
+        c.set(Calendar.MINUTE, 0);
+        c.set(Calendar.SECOND, 0);
+        Timestamp lunch = new Timestamp(c.getTimeInMillis());
+        c.set(Calendar.HOUR_OF_DAY, 0);
+        Timestamp now = new Timestamp(System.currentTimeMillis());
+        if(now.getTime() >= lunch.getTime()){
+            typeOfService = TypeOfService.BACK;
+        }
+        else{
+            typeOfService = TypeOfService.GO;
+        }
+        return studentPersistent.getAllStudentInCurrentTrip(carId, typeOfService);
     }
 }

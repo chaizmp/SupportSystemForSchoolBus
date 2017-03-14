@@ -1,9 +1,13 @@
 package Project.Model.Position;
 
+import lombok.Data;
+
 /**
  * Created by User on 28/8/2559.
  */
+@Data
 public class Bus {
+    private int carId;
     private String carNumber;
     private double avgVelocity;
     private int checkPointPassed;
@@ -12,7 +16,8 @@ public class Bus {
     private Route currentRoute;
 
 
-    public Bus(String carNumber, double avgVelocity, int checkPointPassed, double currentLatitude, double currentLongitude, Route currentRoute) {
+    public Bus(int carId, String carNumber, double avgVelocity, int checkPointPassed, double currentLatitude, double currentLongitude, Route currentRoute) {
+        this.carId = carId;
         this.carNumber = carNumber;
         this.avgVelocity = avgVelocity;
         this.checkPointPassed = checkPointPassed;
@@ -21,71 +26,37 @@ public class Bus {
         this.currentRoute = currentRoute;
     }
 
-    public Bus(String carNumber, double avgVelocity, int checkPointPassed) {
+    public Bus(int carId, String carNumber, double avgVelocity, int checkPointPassed) {
+        this.carId = carId;
         this.carNumber = carNumber;
         this.avgVelocity = avgVelocity;
         this.checkPointPassed = checkPointPassed;
+    }
+
+    public Bus(int carId, String carNumber) {
+        this.carId = carId;
+        this.carNumber = carNumber;
     }
 
     public Bus(String carNumber) {
         this.carNumber = carNumber;
     }
 
-    public Bus(String carNumber, double currentLatitude, double currentLongitude) {
+    public Bus(int carId) {
+        this.carId = carId;
+    }
+
+    public Bus(int carId, String carNumber, double currentLatitude, double currentLongitude) {
+        this.carId = carId;
         this.carNumber = carNumber;
         this.currentLatitude = currentLatitude;
         this.currentLongitude = currentLongitude;
     }
 
-    public String getCarNumber() {
-        return carNumber;
-    }
-
-    public void setCarNumber(String carNumber) {
-        this.carNumber = carNumber;
-    }
-
-    public double getAvgVelocity() {
-        return avgVelocity;
-    }
-
-    public void setAvgVelocity(double avgVelocity) {
-        this.avgVelocity = avgVelocity;
-    }
-
-    public int getCheckPointPassed() {
-        return checkPointPassed;
-    }
-
-    public void setCheckPointPassed(int checkPointPassed) {
-        this.checkPointPassed = checkPointPassed;
-    }
-
-    public double getCurrentLatitude() {
-        return currentLatitude;
-    }
-
-    public void setCurrentLatitude(double currentLatitude) {
+    public Bus(int carId, double currentLatitude, double currentLongitude) {
+        this.carId = carId;
         this.currentLatitude = currentLatitude;
-    }
-
-    public double getCurrentLongitude() {
-        return currentLongitude;
-    }
-
-    public void setCurrentLongitude(double currentLongitude) {
         this.currentLongitude = currentLongitude;
     }
 
-    public void setCurrentRoute(Route currentRoute) {
-        this.currentRoute = currentRoute;
-    }
-
-    public Route setCurrentRoute() {
-        return currentRoute;
-    }
-
-    public Route getCurrentRoute() {
-        return currentRoute;
-    }
 }

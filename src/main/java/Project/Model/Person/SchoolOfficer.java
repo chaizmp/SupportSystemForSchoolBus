@@ -2,6 +2,7 @@ package Project.Model.Person;
 
 import Project.Model.Enumerator.Role;
 import Project.Model.Position.Address;
+import lombok.Data;
 
 import java.awt.*;
 import java.util.ArrayList;
@@ -9,8 +10,9 @@ import java.util.ArrayList;
 /**
  * Created by User on 1/1/2560.
  */
+@Data
 public class SchoolOfficer extends Person {
-    public SchoolOfficer(Role role, String id, Image pic, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<Address> address) {
+    public SchoolOfficer(Role role, int id, Image pic, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<Address> address) {
         super(role, id, pic, token, tel, user, firstName, surName, faceBookId, address);
     }
 

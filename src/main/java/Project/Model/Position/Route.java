@@ -26,27 +26,4 @@ public class Route {
 
     }
 
-    public int getRouteNumber() {
-        return routeNumber;
-    }
-
-    public void setRouteNumber(int routeNumber) {
-        this.routeNumber = routeNumber;
-    }
-
-    public ArrayList<Double> getLatitudes() {
-        return latitudes;
-    }
-
-    public void setLatitudes(ArrayList<Double> latitudes) {
-        this.latitudes = latitudes;
-    }
-
-    public ArrayList<Double> getLongitudes() {
-        return longitudes;
-    }
-
-    public void setLongitudes(ArrayList<Double> longitudes) {
-        this.longitudes = longitudes;
-    }
 }

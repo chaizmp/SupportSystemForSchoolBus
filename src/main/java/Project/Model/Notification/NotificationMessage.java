@@ -12,7 +12,7 @@ import lombok.Data;
 @JsonIgnoreProperties(ignoreUnknown = true)
 public class NotificationMessage {
     @JsonProperty("notification")
-    NotificationForm notificationForm;
+    NotificationForm notification;
     @JsonProperty("to")
     String to;
 
