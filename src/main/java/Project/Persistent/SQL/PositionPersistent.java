@@ -153,6 +153,31 @@ public class PositionPersistent extends JdbcTemplate {
         }
     }
 
+    public IsInBus isInBusPeriod(int personId, Timestamp start, Timestamp stop) {
+        IsInBus result;
+        try {
+            if(stop != null) {
+                result = IsInBus.valueOf(queryForObject("SELECT isInBus FROM PersonInBus WHERE enterTime = (SELECT MAX(enterTime) FROM PersonInBus WHERE personId = ? " +
+                        "AND atTime = ( SELECT MAX(atTime) FROM PersonInBus WHERE personId = ?)) " +
+                        "AND atTime >= ? " +
+                        "AND atTime <= ? " +
+                        "AND atTime = (" +
+                        "SELECT MAX(atTime) FROM PersonInBus WHERE personId = ?) ", String.class, personId, personId, start, stop, personId));
+            }
+            else {
+                result = IsInBus.valueOf(queryForObject("SELECT isInBus FROM PersonInBus WHERE enterTime = (SELECT MAX(enterTime) FROM PersonInBus WHERE personId = ? " +
+                        "AND atTime = ( SELECT MAX(atTime) FROM PersonInBus WHERE personId = ?)) " +
+                        "AND atTime >= ? " +
+                        "AND atTime = (" +
+                        "SELECT MAX(atTime) FROM PersonInBus WHERE personId = ?) ", String.class, personId, personId, start, personId));
+            }
+            return result;
+        } catch (Exception e) {
+            e.printStackTrace();
+            return IsInBus.ABSENT;
+        }
+    }
+
     public SqlRowSet getAllBusRoute() {
         return queryForRowSet("SELECT * FROM route,routePosition WHERE route.routeNumber = routePosition.routeNumber ORDER BY routePosition.routeNumber, routePosition.sequenceNumber ASC");
     }

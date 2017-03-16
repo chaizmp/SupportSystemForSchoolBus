@@ -141,7 +141,7 @@ public class PositionHandler {
         return busList;
     }
 
-    public boolean getOnOrOffBus(int carId, int personId, Double latitude, Double longitude, boolean isStudent) {
+    public boolean getOnOrOffBus(int carId, int personId, Double latitude, Double longitude, boolean isStudent, IsInBus inBus) {
 
         // don't forget that the bus driver isn't the last person. we count only the students.
         IsInBus isInBus = positionPersistent.isInBus(personId);
@@ -151,6 +151,9 @@ public class PositionHandler {
             isInBus = IsInBus.YES;
         } else {
             isInBus = IsInBus.NO;
+        }
+        if(inBus != null){
+            isInBus = inBus;
         }
         Status status;
         Student student;
@@ -173,7 +176,7 @@ public class PositionHandler {
             now = new Timestamp(System.currentTimeMillis());
             midNight = new Timestamp(c.getTimeInMillis());
 
-        if (positionPersistent.isFirstPerson(carId, now, time, midNight)) {
+        if (isInBus != IsInBus.TEMP && positionPersistent.isFirstPerson(carId, now, time, midNight)) {
             status = Status.PERSONSTART;
             positionPersistent.addBusPosition(carId, latitude, longitude, status);
             status = Status.START;
@@ -183,9 +186,10 @@ public class PositionHandler {
             ArrayList<Teacher> teachers = teacherHandler.getCurrentTeacherInBusByCarId(carId, startAndEndPeriod);
             Driver driver = driverHandler.getCurrentDriverInBusByCarId(carId, startAndEndPeriod);
             for(Teacher it: teachers) {
-                getOnOrOffBus(carId,it.getId(), latitude, longitude, false);
+                getOnOrOffBus(carId,it.getId(), latitude, longitude, false, null);
             }
-            getOnOrOffBus(carId,driver.getId(), latitude, longitude, false);
+            if(driver != null)
+            getOnOrOffBus(carId,driver.getId(), latitude, longitude, false, null);
             status = Status.FINISH;
             positionPersistent.addBusPosition(carId, latitude, longitude, status);
             studentHandler.addStudentsTrip(studentHandler.getAllStudentsUsedToBeOnBusInCurrentTrip(carId, now, time, midNight), -1);

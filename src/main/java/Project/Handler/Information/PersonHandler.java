@@ -6,6 +6,9 @@ import Project.Persistent.SQL.PersonPersistent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.util.ArrayList;
 
 /**
@@ -61,5 +64,19 @@ public class PersonHandler {
     }
     public int getPersonIdByUsername(String username){
         return personPersistent.getPersonIdByUsername(username);
+    }
+    public boolean savePersonImage(String image, int personId){
+        try {
+            String path = new File(".").getCanonicalPath()+"\\userData\\"+personId+"\\img\\face.jpeg";
+            File file = new File(path);
+            file.getParentFile().mkdirs();
+            FileOutputStream fos = new FileOutputStream(path);
+            fos.write(image.getBytes());
+            fos.close();
+            return true;
+        }catch(IOException e){
+            e.printStackTrace();
+            return false;
+        }
     }
 }

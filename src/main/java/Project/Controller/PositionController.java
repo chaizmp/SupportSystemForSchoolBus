@@ -5,10 +5,12 @@ import Project.Handler.Information.PersonHandler;
 import Project.Handler.Information.StudentHandler;
 import Project.Handler.Notification.NotificationHandler;
 import Project.Handler.Position.PositionHandler;
+import Project.Model.Enumerator.IsInBus;
 import Project.Model.Enumerator.Status;
 import Project.Model.Enumerator.Type;
 import Project.Model.Person.Person;
 import Project.Model.Person.Student;
+import Project.Model.Position.Address;
 import Project.Model.Position.Bus;
 import Project.Model.Position.Position;
 import Project.Model.Position.Route;
@@ -89,10 +91,14 @@ public class PositionController {
         for (Student student : students) {
             student.setAddresses(personPersistent.getPersonAddressesByPersonId(student.getId()));
             ArrayList<Person> persons = personHandler.getPersonsRelatedToStudent(student.getId());
-            double estimateTime = positionHandler.estimateTime(averageVelocity, student.getAddresses().get(0).getLatitude(), student.getAddresses().get(0).getLongitude(), latitude, longitude, route);
+            ArrayList<Address> addresses = student.getAddresses();
+            Address address = addresses.get(0);
+            double studentLatitude = address.getLatitude();
+            double studentLongitude = address.getLongitude();
+            double estimateTime = positionHandler.estimateTime(averageVelocity, studentLatitude, studentLongitude, latitude, longitude, route);
             for(Person person: persons){
                 int duration = personHandler.getPersonAlarm(person.getId());
-                if(duration != -1 && estimateTime <= duration ){
+                if(duration != -1 && estimateTime <= duration*60 ){
                     String carNumber = busHandler.getBusCarNumberByCarId(carId);
                     notificationHandler.alarm(carNumber, person.getToken(), student.getFirstName(), student.getSurName());
                 }
@@ -110,9 +116,10 @@ public class PositionController {
                             @RequestParam(value = "personId") int personId,
                             @RequestParam(value = "latitude") double latitude,
                             @RequestParam(value = "longitude") double longitude,
-                            @RequestParam(value = "isStudent") boolean isStudent
+                            @RequestParam(value = "isStudent") boolean isStudent,
+                            @RequestParam(value = "isInBus", required = false) IsInBus isInBus
     ) {
-        return positionHandler.getOnOrOffBus(carId, personId, latitude, longitude, isStudent);
+        return positionHandler.getOnOrOffBus(carId, personId, latitude, longitude, isStudent, isInBus);
     }
 
     @RequestMapping(value = "addRoute", method = RequestMethod.POST)

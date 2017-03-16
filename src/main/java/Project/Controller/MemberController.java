@@ -59,9 +59,11 @@ public class MemberController {
             @RequestParam(value = "tel") String tel,
             @RequestParam(value = "latitudes") ArrayList<Double> latitudes,
             @RequestParam(value = "longitudes") ArrayList<Double> longitudes,
-            @RequestParam(value = "details") ArrayList<String> details
+            @RequestParam(value = "details") ArrayList<String> details,
+            @RequestParam(value = "image") String image
             ) {
-        return memberHandler.signUp(username, password, name, surname, role, tel, latitudes, longitudes, details);
+        boolean result = memberHandler.signUp(username, password, name, surname, role, tel, latitudes, longitudes, details, image);
+        return result;
     }
 
     @RequestMapping(value = "signIn", method = RequestMethod.POST)

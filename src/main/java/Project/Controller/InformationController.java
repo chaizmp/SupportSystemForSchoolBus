@@ -13,9 +13,11 @@ import Project.Persistent.SQL.PositionPersistent;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
+import sun.misc.BASE64Decoder;
 
 import java.sql.Timestamp;
 import java.util.ArrayList;
+import java.util.Base64;
 
 
 /**
@@ -46,6 +48,30 @@ public class InformationController {
     SchoolHandler schoolHandler;
     @Autowired
     PositionPersistent positionPersistent;
+
+    @RequestMapping(value = "saveCamera", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    boolean setTypeOfService(@RequestParam(value = "carId") int carId,
+                             @RequestParam(value = "image") String image,
+                             @RequestParam(value = "isFront") boolean isFront
+    ) {
+
+
+        Base64.Decoder dec = Base64.getDecoder();
+        return busHandler.saveCameraImage(carId, dec.decode(image), isFront);
+    }
+
+    @RequestMapping(value = "getImageFromBus", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    String setTypeOfService(@RequestParam(value = "carId") int carId
+    ) {
+        JSONObject imageJSON = new JSONObject();
+        imageJSON.put("imageFront",busHandler.getImageFromBus(carId, true));
+        imageJSON.put("imageBack", busHandler.getImageFromBus(carId, false));
+        return imageJSON.toString();
+    }
 
     @RequestMapping(value = "setTypeOfService", method = RequestMethod.POST)
     public
@@ -122,14 +148,14 @@ public class InformationController {
     ) {
         //ArrayList<Student> students = studentHandler.getCurrentAllStudentByCarId(carId);
         ArrayList<Student> students = studentHandler.getAllStudentInCurrentTrip(carId);
-        for (Student it : students) {
-            IsInBus inBus = positionPersistent.isInBus(it.getId());
-            it.setInBus(inBus);
+        Driver driver = driverHandler.getLatestDriverInBusByCarId(carId);
+        if(driver != null) {
+            driver.setAddresses(personPersistent.getPersonAddressesByPersonId(driver.getId()));
+        }
+        ArrayList<Teacher> teachers = teacherHandler.getCurrentAllTeacherByCarId(carId);
+        for(Teacher it: teachers){
             it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
         }
-        Driver driver = driverHandler.getLatestDriverInBusByCarId(carId);
-        driver.setAddresses(personPersistent.getPersonAddressesByPersonId(driver.getId()));
-        ArrayList<Teacher> teachers = teacherHandler.getCurrentAllTeacherByCarId(carId);
         JSONObject studentsJSON = objectToJSON.arrayListToJSON("students", students);
         JSONObject teachersJSON = objectToJSON.arrayListToJSON("teachers", teachers);
         JSONObject driverJSON = objectToJSON.mapToJSON("driver", driver);
@@ -154,7 +180,8 @@ public class InformationController {
     String getAllStudentInBus(
             @RequestParam(value = "carId") int carId//personId of a driver
     ) {
-        ArrayList<Student>  students = studentHandler.getCurrentAllStudentByCarId(carId);
+        //ArrayList<Student>  students = studentHandler.getCurrentAllStudentByCarId(carId);
+        ArrayList<Student> students = studentHandler.getAllStudentInCurrentTrip(carId);
         for (Student it : students) {
             it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
         }
@@ -200,7 +227,7 @@ public class InformationController {
                 return result.toString();
             }
         }
-        return null;
+        return "-1";
     }
 
     @RequestMapping(value = "updateFireBaseToken", method = RequestMethod.POST)

@@ -75,15 +75,22 @@ public class StudentHandler {
             Timestamp lunch = new Timestamp(c.getTimeInMillis());
             c.set(Calendar.HOUR_OF_DAY, 0);
             Timestamp now = new Timestamp(System.currentTimeMillis());
+            Timestamp midNight = new Timestamp(c.getTimeInMillis());
+            Timestamp start;
+            Timestamp end;
             if(now.getTime() >= lunch.getTime()){
                 typeOfService = TypeOfService.BACK;
+                start = lunch;
+                end = null;
             }
             else{
                 typeOfService = TypeOfService.GO;
+                start = midNight;
+                end = lunch;
             }
             students = studentPersistent.getAllStudentByTypeOfService(typeOfService);
             for (Student it : students) {
-                IsInBus inBus = positionPersistent.isInBus(it.getId());
+                IsInBus inBus = positionPersistent.isInBusPeriod(it.getId(), start, end); //PERIOD
                 it.setInBus(inBus);
                 it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
             }
@@ -157,12 +164,27 @@ public class StudentHandler {
         Timestamp lunch = new Timestamp(c.getTimeInMillis());
         c.set(Calendar.HOUR_OF_DAY, 0);
         Timestamp now = new Timestamp(System.currentTimeMillis());
+        Timestamp midNight = new Timestamp(c.getTimeInMillis());
+        Timestamp start;
+        Timestamp end;
         if(now.getTime() >= lunch.getTime()){
+            start = lunch;
+            end = null;
             typeOfService = TypeOfService.BACK;
         }
         else{
+            start = midNight;
+            end = lunch;
             typeOfService = TypeOfService.GO;
         }
-        return studentPersistent.getAllStudentInCurrentTrip(carId, typeOfService);
+
+        ArrayList<Student> students = studentPersistent.getAllStudentInCurrentTrip(carId, typeOfService);
+        for (Student it : students) {
+            IsInBus inBus = positionPersistent.isInBusPeriod(it.getId(), start, end);
+            it.setInBus(inBus);
+            it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
+        }
+
+        return students;
     }
 }

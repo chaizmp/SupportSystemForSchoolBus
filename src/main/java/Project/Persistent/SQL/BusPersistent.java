@@ -25,8 +25,9 @@ public class BusPersistent extends JdbcTemplate {
     public Bus getCurrentBusCarIdByStudentId(int personId) {
         Bus result;
         try {
-            result = queryForObject("SELECT carId FROM PersonInBus WHERE atTime IN (SELECT MAX(atTime) FROM PersonInBus WHERE personId = ?) " +
+            result = queryForObject("SELECT DISTINCT carId FROM PersonInBus WHERE atTime IN (SELECT MAX(atTime) FROM PersonInBus WHERE personId = ?) " +
                     "AND PersonId = ? " +
+                    "AND isInBus = 'YES' " +
                     "AND enterTime = (SELECT MAX(enterTime) FROM personInBus WHERE personId = ? AND atTime = (SELECT MAX(atTime) from PersonInBus Where personId = ?) )", new BusMapper(), personId, personId, personId, personId);
         } catch (Exception e) {
             e.printStackTrace();

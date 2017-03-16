@@ -43,10 +43,15 @@ public class DriverPersistent extends JdbcTemplate {
     }
 
     public Driver getLatestDriverInBusByCarId(int carId){
-        return queryForObject("SELECT * FROM PersonInBus, Person WHERE Person.personId = personInBus.personId "+
-                "AND Person.role = 'DRIVER' " +
-                "AND carId = ? " +
-                "AND atTime >= ( SELECT MAX(atTime) FROM personInBus WHERE carId = ? AND status = 'START' )", new DriverMapper(), carId, carId);
+        try {
+            return queryForObject("SELECT * FROM PersonInBus, Person WHERE Person.personId = personInBus.personId " +
+                    "AND Person.role = 'DRIVER' " +
+                    "AND carId = ? " +
+                    "AND atTime >= ( SELECT MAX(atTime) FROM personInBus WHERE carId = ? AND status = 'START' )", new DriverMapper(), carId, carId);
+        } catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
     }
 
 }

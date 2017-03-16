@@ -32,7 +32,7 @@ public class MemberHandler {
     @Autowired
     StudentPersistent studentPersistent;
 
-    public boolean signUp(String username, String password, String name, String surname, Role role, String tel, ArrayList<Double> latitudes, ArrayList<Double> longitudes, ArrayList<String> details){
+    public boolean signUp(String username, String password, String name, String surname, Role role, String tel, ArrayList<Double> latitudes, ArrayList<Double> longitudes, ArrayList<String> details, String image){
 
         byte[] salt = authenticationUtil.generateSalt();
         Base64.Encoder enc = Base64.getEncoder();
@@ -41,11 +41,14 @@ public class MemberHandler {
         //***************** get that key
         if(mainTableResult != -1){
             personHandler.addPersonAddressById(mainTableResult, latitudes, longitudes, details);
+            personHandler.savePersonImage(image, mainTableResult);
             switch (role) {
                 case PARENT:
-                    return parentPersistent.addParent(mainTableResult);
+                    parentPersistent.addParent(mainTableResult);
+                    break;
                 case TEACHER:
-                    return teacherPersistent.addTeacher(mainTableResult);
+                    teacherPersistent.addTeacher(mainTableResult);
+                    break;
             }
         }
         return mainTableResult != -1;

@@ -8,6 +8,7 @@ import javax.imageio.ImageIO;
 import java.awt.*;
 import java.io.*;
 import java.net.URL;
+import java.util.Base64;
 
 /**
  * Created by User on 11/3/2560.
@@ -23,7 +24,7 @@ public class CameraController {
     ) {
       //return apiCall.getPicFromCamera();
         try {
-            URL url = new URL("http://192.168.1.11:81/snapshot.cgi?user=admin&pwd=sakchailab606");
+            URL url = new URL("http://192.168.43.31:81/snapshot.cgi?user=admin&pwd=sakchailab606");
             InputStream in = new BufferedInputStream(url.openStream());
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             byte[] buf = new byte[1024];
@@ -37,6 +38,7 @@ public class CameraController {
             FileOutputStream fos = new FileOutputStream("C:\\borrowed_image.jpeg");
             fos.write(response);
             fos.close();
+            Base64.Encoder enc = Base64.getEncoder();
             return true;
         }catch(IOException e){
             e.printStackTrace();
