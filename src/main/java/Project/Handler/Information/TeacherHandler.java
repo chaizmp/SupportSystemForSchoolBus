@@ -20,11 +20,14 @@ public class TeacherHandler {
     TeacherPersistent teacherPersistent;
     @Autowired
     PersonPersistent personPersistent;
+    @Autowired
+    PersonHandler personHandler;
 
     public ArrayList<Teacher> getTeachersByStudentId(int personId) {
         ArrayList<Teacher> teachers = teacherPersistent.getTeachersByStudentId(personId, "" + Calendar.getInstance().get(Calendar.YEAR));
         for (Teacher it : teachers) {
-            it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
+            int id = it.getId();
+            it.setAddresses(personPersistent.getPersonAddressesByPersonId(id));
         }
         return teachers;
     }

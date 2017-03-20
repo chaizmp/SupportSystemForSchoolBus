@@ -49,17 +49,20 @@ public class MemberHandler {
                 case TEACHER:
                     teacherPersistent.addTeacher(mainTableResult);
                     break;
+                default:
+                    break;
             }
         }
         return mainTableResult != -1;
     }
 
-    public boolean studentSignUp(String studentId, String name, String surname, String tel, ArrayList<Double> latitudes, ArrayList<Double> longitudes, ArrayList<String> details, TypeOfService typeOfService){
+    public boolean studentSignUp(String studentId, String name, String surname, String tel, ArrayList<Double> latitudes, ArrayList<Double> longitudes, ArrayList<String> details, TypeOfService typeOfService, String image){
 
         int mainTableResult = personPersistent.addPerson(null, null, null, name, surname, Role.STUDENT, tel);
         //***************** get that key
         if(mainTableResult != -1){
             personHandler.addPersonAddressById(mainTableResult, latitudes, longitudes, details);
+            personHandler.savePersonImage(image, mainTableResult);
             studentPersistent.addStudent(studentId, typeOfService, mainTableResult);
         }
         return mainTableResult != -1;

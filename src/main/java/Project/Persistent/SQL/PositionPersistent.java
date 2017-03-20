@@ -114,7 +114,7 @@ public class PositionPersistent extends JdbcTemplate {
         }
     }
 
-    public Integer addRoute(ArrayList<Double> latitudes, ArrayList<Double> longitudes, Type type) {
+    public Integer addRoute(ArrayList<Double> latitudes, ArrayList<Double> longitudes, Type type, String active, int personId) {
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         update(connection ->
@@ -124,8 +124,8 @@ public class PositionPersistent extends JdbcTemplate {
         int result = 0;
         int i;
         for (i = 0; i < latitudes.size(); i++) {
-            result += update("INSERT INTO RoutePosition(routeNumber,sequenceNumber,latitude,longitude) VALUES (?,?,?,?) ", routeNumber, i, latitudes.get(i)
-                    , longitudes.get(i));
+            result += update("INSERT INTO RoutePosition(routeNumber,sequenceNumber,latitude,longitude,active,personId) VALUES (?,?,?,?,?,?) ", routeNumber, i, latitudes.get(i)
+                    , longitudes.get(i), active, personId);
         }
         return result == i ? routeNumber : -1;
     }

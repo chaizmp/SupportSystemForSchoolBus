@@ -131,4 +131,5 @@ public class PersonPersistent extends JdbcTemplate {
     public int getPersonIdByUsername(String username){
         return queryForObject("SELECT personId from person WHERE username = ?", Integer.class, username);
     }
+
 }

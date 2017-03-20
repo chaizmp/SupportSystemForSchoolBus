@@ -126,9 +126,10 @@ public class InformationController {
     public
     @ResponseBody
     ArrayList<Student> getAllStudent(
-            @RequestParam(value = "personId") int personId //teacher or parent
+            @RequestParam(value = "personId") int personId, //teacher or parent
+            @RequestParam(value = "needImage") boolean needImage
     ) {
-        return studentHandler.getAllStudentByPersonId(personId);
+        return studentHandler.getAllStudentByPersonId(personId, needImage);
     }
 
     @RequestMapping(value = "getStudentInformation", method = RequestMethod.POST)
@@ -144,17 +145,24 @@ public class InformationController {
     public
     @ResponseBody
     String getPassenger(
-            @RequestParam(value = "carId") int carId //personId of a driver
+            @RequestParam(value = "carId") int carId, //personId of a driver
+            @RequestParam(value = "needImage") boolean needImage
     ) {
         //ArrayList<Student> students = studentHandler.getCurrentAllStudentByCarId(carId);
-        ArrayList<Student> students = studentHandler.getAllStudentInCurrentTrip(carId);
+        ArrayList<Student> students = studentHandler.getAllStudentInCurrentTrip(carId, needImage);
         Driver driver = driverHandler.getLatestDriverInBusByCarId(carId);
         if(driver != null) {
             driver.setAddresses(personPersistent.getPersonAddressesByPersonId(driver.getId()));
+            if(needImage){
+                driver.setImage(personHandler.getPersonImage(driver.getId()));
+            }
         }
         ArrayList<Teacher> teachers = teacherHandler.getCurrentAllTeacherByCarId(carId);
         for(Teacher it: teachers){
             it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
+            if(needImage) {
+                it.setImage(personHandler.getPersonImage(it.getId()));
+            }
         }
         JSONObject studentsJSON = objectToJSON.arrayListToJSON("students", students);
         JSONObject teachersJSON = objectToJSON.arrayListToJSON("teachers", teachers);
@@ -181,7 +189,7 @@ public class InformationController {
             @RequestParam(value = "carId") int carId//personId of a driver
     ) {
         //ArrayList<Student>  students = studentHandler.getCurrentAllStudentByCarId(carId);
-        ArrayList<Student> students = studentHandler.getAllStudentInCurrentTrip(carId);
+        ArrayList<Student> students = studentHandler.getAllStudentInCurrentTrip(carId, false);
         for (Student it : students) {
             it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
         }
@@ -267,7 +275,20 @@ public class InformationController {
     ArrayList<Student> getAllStudentInCurrentTrip(
         @RequestParam(value = "carId") int carId
     ){
-        return studentHandler.getAllStudentInCurrentTrip(carId);
+        return studentHandler.getAllStudentInCurrentTrip(carId, false);
+    }
+
+    @RequestMapping(value = "getPersonImage", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    String getPersonImage(
+            @RequestParam(value = "personId") int personId
+    ){
+        JSONObject result = new JSONObject();
+        String image = personHandler.getPersonImage(personId);
+        result.put("personId",personId);
+        result.put("image",image);
+        return result.toString();
     }
 
 }

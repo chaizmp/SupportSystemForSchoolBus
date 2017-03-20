@@ -87,20 +87,24 @@ public class PositionController {
         boolean result = positionHandler.addBusPosition(carId, latitude, longitude, status);
         double averageVelocity = positionHandler.setVelocity(carId, bus.getCurrentLatitude(), bus.getCurrentLongitude(), latitude, longitude);
         Route route = busHandler.getBusRoutinelyUsedRoute(carId);
-        ArrayList<Student>  students = studentHandler.getCurrentAllStudentByCarId(carId);
-        for (Student student : students) {
-            student.setAddresses(personPersistent.getPersonAddressesByPersonId(student.getId()));
-            ArrayList<Person> persons = personHandler.getPersonsRelatedToStudent(student.getId());
-            ArrayList<Address> addresses = student.getAddresses();
-            Address address = addresses.get(0);
-            double studentLatitude = address.getLatitude();
-            double studentLongitude = address.getLongitude();
-            double estimateTime = positionHandler.estimateTime(averageVelocity, studentLatitude, studentLongitude, latitude, longitude, route);
-            for(Person person: persons){
-                int duration = personHandler.getPersonAlarm(person.getId());
-                if(duration != -1 && estimateTime <= duration*60 ){
-                    String carNumber = busHandler.getBusCarNumberByCarId(carId);
-                    notificationHandler.alarm(carNumber, person.getToken(), student.getFirstName(), student.getSurName());
+        for (int i = 0; i < route.getLatitudes().size(); i++) {
+            //student.setAddresses(personPersistent.getPersonAddressesByPersonId(student.getId()));
+            int personSId = route.getPersonId().get(i);
+            Student student = studentHandler.getStudentByPersonId(personSId);
+            ArrayList<Person> persons = personHandler.getPersonsRelatedToStudent(personSId);
+            //ArrayList<Address> addresses = student.getAddresses();
+            //Address address = addresses.get(0);
+            if(route.getActive().get(i).equals("YES")) {
+                double studentLatitude = route.getLatitudes().get(i);
+                double studentLongitude = route.getLongitudes().get(i);
+                boolean temporary = route.getTemporary().get(i).equals("YES") ? true: false;
+                double estimateTime = positionHandler.estimateTime(averageVelocity, studentLatitude, studentLongitude, latitude, longitude, route, temporary);
+                for (Person person : persons) {
+                    int duration = personHandler.getPersonAlarm(student.getId());
+                    if (duration != -1 && estimateTime <= duration * 60) {
+                        String carNumber = busHandler.getBusCarNumberByCarId(carId);
+                        notificationHandler.alarm(carNumber, person.getToken(), student.getFirstName(), student.getSurName());
+                    }
                 }
             }
         }
@@ -128,9 +132,11 @@ public class PositionController {
     Integer addRoute(
             @RequestParam(value = "latitudes") ArrayList<Double> latitudes,
             @RequestParam(value = "longitudes") ArrayList<Double> longitudes,
-            @RequestParam(value = "type") Type type
+            @RequestParam(value = "type") Type type,
+            @RequestParam(value = "active") String active,
+            @RequestParam(value = "personId") int personId
             ) {
-        return positionHandler.addRoute(latitudes, longitudes, type);
+        return positionHandler.addRoute(latitudes, longitudes, type, active, personId);
     }
 
     @RequestMapping(value = "getAllBusRoute", method = RequestMethod.POST)
@@ -178,7 +184,8 @@ public class PositionController {
     double setBusRoute(
             @RequestParam(value = "carId") int carId,
             @RequestParam(value = "latitude") double latitude,
-            @RequestParam(value = "longitude") double longitude
+            @RequestParam(value = "longitude") double longitude,
+            @RequestParam(value = "temporary") boolean temporary
     ) {
         Route route = busHandler.getBusRoutinelyUsedRoute(carId);
         Bus bus = busHandler.getCurrentBusPosition(carId);
@@ -188,6 +195,6 @@ public class PositionController {
         }
         double currentLatitude = bus.getCurrentLatitude();
         double currentLongitude = bus.getCurrentLongitude();
-        return positionHandler.estimateTime(velocity, latitude, longitude, currentLatitude, currentLongitude, route);
+        return positionHandler.estimateTime(velocity, latitude, longitude, currentLatitude, currentLongitude, route, temporary);
     }
 }

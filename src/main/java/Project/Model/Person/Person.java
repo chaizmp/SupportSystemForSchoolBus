@@ -14,7 +14,7 @@ import java.util.ArrayList;
 public class Person {
     private Role role;
     private int id;
-    private Image pic;
+    private String image;
     private String token;
     private String tel;
     private String user;
@@ -23,10 +23,10 @@ public class Person {
     private String faceBookId;
     private ArrayList<Address> addresses;
 
-    public Person(Role role, int id, Image pic, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<Address> addresses) {
+    public Person(Role role, int id, String image, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<Address> addresses) {
         this.role = role;
         this.id = id;
-        this.pic = pic;
+        this.image = image;
         this.token = token;
         this.tel = tel;
         this.user = user;

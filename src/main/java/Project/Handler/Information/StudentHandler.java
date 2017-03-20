@@ -35,12 +35,13 @@ public class StudentHandler {
     PositionHandler positionHandler;
     @Autowired
     BusPersistent busPersistent;
-
+    @Autowired
+    PersonHandler personHandler;
     public boolean setTypeOfService(TypeOfService typeOfService, int personId) {
         return studentPersistent.setTypeOfService(typeOfService, personId);
     }
 
-    public ArrayList<Student> getAllStudentByPersonId(int personId) {
+    public ArrayList<Student> getAllStudentByPersonId(int personId, boolean needImage) {
         ArrayList<Student> students = null;
         if(personId != -1) {
             Role role = studentPersistent.getRoleByPersonId(personId);
@@ -60,9 +61,13 @@ public class StudentHandler {
                 }
 
                 for (Student it : students) {
-                    IsInBus inBus = positionPersistent.isInBus(it.getId());
+                    int id = it.getId();
+                    IsInBus inBus = positionPersistent.isInBus(id);
                     it.setInBus(inBus);
-                    it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
+                    it.setAddresses(personPersistent.getPersonAddressesByPersonId(id));
+                    if(needImage){
+                        it.setImage(personHandler.getPersonImage(id));
+                    }
                 }
             }
         }
@@ -155,7 +160,7 @@ public class StudentHandler {
         return result;
     }
 
-    public ArrayList<Student> getAllStudentInCurrentTrip(int carId){
+    public ArrayList<Student> getAllStudentInCurrentTrip(int carId, boolean needImage){
         TypeOfService typeOfService;
         Calendar c = new GregorianCalendar();
         c.set(Calendar.HOUR_OF_DAY, 12); //anything 0 - 23
@@ -183,6 +188,9 @@ public class StudentHandler {
             IsInBus inBus = positionPersistent.isInBusPeriod(it.getId(), start, end);
             it.setInBus(inBus);
             it.setAddresses(personPersistent.getPersonAddressesByPersonId(it.getId()));
+            if(needImage){
+                it.setImage(personHandler.getPersonImage(it.getId()));
+            }
         }
 
         return students;

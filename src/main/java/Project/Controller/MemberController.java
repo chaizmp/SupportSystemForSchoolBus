@@ -101,8 +101,9 @@ public class MemberController {
             @RequestParam(value = "typeOfService") TypeOfService typeOfService,
             @RequestParam(value = "latitudes") ArrayList<Double> latitudes,
             @RequestParam(value = "longitudes") ArrayList<Double> longitudes,
-            @RequestParam(value = "details") ArrayList<String> details
+            @RequestParam(value = "details") ArrayList<String> details,
+            @RequestParam(value=  "image") String image
     ){
-        return memberHandler.studentSignUp(studentId, name, surname, tel, latitudes, longitudes, details, typeOfService);
+        return memberHandler.studentSignUp(studentId, name, surname, tel, latitudes, longitudes, details, typeOfService, image);
     }
 }

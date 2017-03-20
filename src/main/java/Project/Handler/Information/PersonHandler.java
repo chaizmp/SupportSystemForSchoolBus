@@ -6,10 +6,9 @@ import Project.Persistent.SQL.PersonPersistent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
-import java.io.File;
-import java.io.FileOutputStream;
-import java.io.IOException;
+import java.io.*;
 import java.util.ArrayList;
+import java.util.Base64;
 
 /**
  * Created by User on 20/2/2560.
@@ -71,12 +70,31 @@ public class PersonHandler {
             File file = new File(path);
             file.getParentFile().mkdirs();
             FileOutputStream fos = new FileOutputStream(path);
-            fos.write(image.getBytes());
+            fos.write(Base64.getDecoder().decode(image));
             fos.close();
             return true;
         }catch(IOException e){
             e.printStackTrace();
             return false;
+        }
+    }
+    public String getPersonImage(int personId){
+        try {
+            String path = new File(".").getCanonicalPath() + "\\userData\\" + personId + "\\img\\face.jpeg";
+            InputStream in = new BufferedInputStream(new FileInputStream(path));
+            ByteArrayOutputStream out = new ByteArrayOutputStream();
+            byte[] buf = new byte[1024];
+            int n = 0;
+            while (-1 != (n = in.read(buf))) {
+                out.write(buf, 0, n);
+            }
+            out.close();
+            in.close();
+            byte[] response = out.toByteArray();
+            return Base64.getEncoder().encodeToString(response);
+        }catch(Exception e){
+            e.printStackTrace();
+            return "-1";
         }
     }
 }

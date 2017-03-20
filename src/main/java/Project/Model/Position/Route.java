@@ -14,6 +14,9 @@ public class Route {
     private ArrayList<Double> latitudes;
     private ArrayList<Double> longitudes;
     private Type type;
+    private ArrayList<String> active;
+    private ArrayList<Integer> personId;
+    private ArrayList<Boolean> temporary;
 
     public Route(int routeNumber, ArrayList<Double> latitudes, ArrayList<Double> longitudes, Type type) {
         this.routeNumber = routeNumber;
