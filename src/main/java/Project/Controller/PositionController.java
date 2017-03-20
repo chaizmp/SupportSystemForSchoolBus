@@ -89,12 +89,12 @@ public class PositionController {
         Route route = busHandler.getBusRoutinelyUsedRoute(carId);
         for (int i = 0; i < route.getLatitudes().size(); i++) {
             //student.setAddresses(personPersistent.getPersonAddressesByPersonId(student.getId()));
-            int personSId = route.getPersonId().get(i);
-            Student student = studentHandler.getStudentByPersonId(personSId);
-            ArrayList<Person> persons = personHandler.getPersonsRelatedToStudent(personSId);
             //ArrayList<Address> addresses = student.getAddresses();
             //Address address = addresses.get(0);
             if(route.getActive().get(i).equals("YES")) {
+                int personSId = route.getPersonId().get(i);
+                Student student = studentHandler.getStudentByPersonId(personSId);
+                ArrayList<Person> persons = personHandler.getPersonsRelatedToStudent(personSId);
                 double studentLatitude = route.getLatitudes().get(i);
                 double studentLongitude = route.getLongitudes().get(i);
                 boolean temporary = route.getTemporary().get(i).equals("YES") ? true: false;
