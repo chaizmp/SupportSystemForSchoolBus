@@ -72,8 +72,12 @@ public class PositionHandler {
     }
 
 
-    public Integer addRoute(ArrayList<Double> latitudes, ArrayList<Double> longitudes, Type type, String active, int personId) {
-        return positionPersistent.addRoute(latitudes, longitudes, type, active, personId);
+    public Integer addRoute(ArrayList<Double> latitudes, ArrayList<Double> longitudes, Type type, ArrayList<String> active, ArrayList<Integer> personIds, ArrayList<String> temporary) {
+        return positionPersistent.addRoute(latitudes, longitudes, type, active, personIds, temporary);
+    }
+
+    public boolean addTemporaryRoute(int routeNumber, double latitude, double longitude, String active, int personId, String temporary) {
+        return positionPersistent.addTemporaryRoute(routeNumber, latitude, longitude, active, personId, temporary);
     }
 
     public boolean deleteRoute(int routeNumber) {
@@ -95,13 +99,16 @@ public class PositionHandler {
         ArrayList<Double> longitudes = new ArrayList<>();
         ArrayList<Integer> personIds = new ArrayList<>();
         ArrayList<String> actives = new ArrayList<>();
-        ArrayList<Boolean> temporaries = new ArrayList<>();
+        ArrayList<String> temporaries = new ArrayList<>();
         while (sqlRowSet.next()) {
             next = sqlRowSet.getInt("routeNumber");
             type = Type.valueOf(sqlRowSet.getString("type"));
             if (current != next) {
                 if (current != -1) {
                     routeList.add(route);
+                    route.setActive(actives);
+                    route.setPersonIds(personIds);
+                    route.setTemporary(temporaries);
                     route.setLatitudes(latitudes);
                     route.setLongitudes(longitudes);
                 }
@@ -118,13 +125,13 @@ public class PositionHandler {
             latitudes.add(sqlRowSet.getDouble("latitude"));
             longitudes.add(sqlRowSet.getDouble("longitude"));
             personIds.add(sqlRowSet.getInt("personId"));
-            actives.add(sqlRowSet.getString("personId"));
-            temporaries.add(sqlRowSet.getString("temporary").equals("YES")? true: false);
+            actives.add(sqlRowSet.getString("active"));
+            temporaries.add(sqlRowSet.getString("temporary"));
         }
         route.setLatitudes(latitudes);
         route.setLongitudes(longitudes);
         route.setActive(actives);
-        route.setPersonId(personIds);
+        route.setPersonIds(personIds);
         route.setTemporary(temporaries);
         routeList.add(route);
         return routeList;
@@ -202,6 +209,8 @@ public class PositionHandler {
             }
             if(driver != null)
             getOnOrOffBus(carId,driver.getId(), latitude, longitude, false, null);
+            Route route = busHandler.getBusRoutinelyUsedRoute(carId);
+            positionPersistent.deleteTemporary(route);
             status = Status.FINISH;
             positionPersistent.addBusPosition(carId, latitude, longitude, status);
             studentHandler.addStudentsTrip(studentHandler.getAllStudentsUsedToBeOnBusInCurrentTrip(carId, now, time, midNight), -1);
@@ -267,65 +276,63 @@ public class PositionHandler {
         ArrayList<Double> longitudes = new ArrayList<>();
         ArrayList<String> actives = new ArrayList<>();
         ArrayList<Integer> personIds = new ArrayList<>();
-        ArrayList<Boolean> temporaries = new ArrayList<>();
+        ArrayList<String> temporaries = new ArrayList<>();
         while (sqlRowSet.next()) {
-            if (sqlRowSet.isFirst())
+            if (sqlRowSet.isFirst()) {
                 route.setRouteNumber(sqlRowSet.getInt("routeNumber"));
+            }
             latitudes.add(sqlRowSet.getDouble("latitude"));
             longitudes.add(sqlRowSet.getDouble("longitude"));
             actives.add(sqlRowSet.getString("active"));
             personIds.add(sqlRowSet.getInt("personId"));
-            temporaries.add(sqlRowSet.getString("temporary").equals("YES")? true: false);
+            temporaries.add(sqlRowSet.getString("temporary"));
         }
         route.setLatitudes(latitudes);
         route.setLongitudes(longitudes);
         route.setActive(actives);
-        route.setPersonId(personIds);
+        route.setPersonIds(personIds);
         route.setTemporary(temporaries);
         return route;
     }
 
-    public double estimateTime(double velocity, double studentLatitude, double studentLongitude, double busLatitude, double busLongitude,  Route route, boolean temporary){
+    public double estimateTime(double velocity, Route route, int index, double busLatitude, double busLongitude){
         ArrayList<Double> routeLatitudes = route.getLatitudes();
         ArrayList<Double> routeLongitudes = route.getLongitudes();
         double minDistanceToNextCheckPoint = 9999999;
         double newDistanceToNextCheckPoint;
-
-        double minDistanceToHome = 9999999;
-        double newDistanceToHome;
         int minIndexToNextCheckPoint = -1;
-        int minIndexToHome = -1;
         int start;
         int end;
         double sumOfDistance;
-        if(!temporary) {
+        if(!route.getTemporary().get(index).equals("YES")) {
             for (int i = 0; i < routeLatitudes.size(); i++) {
-                newDistanceToNextCheckPoint = haverSineDistance(busLatitude, busLongitude, routeLatitudes.get(i), routeLongitudes.get(i));
-                newDistanceToHome = haverSineDistance(studentLatitude, studentLongitude, routeLatitudes.get(i), routeLongitudes.get(i));
-                if (newDistanceToNextCheckPoint < minDistanceToNextCheckPoint || i == 0) {
-                    minDistanceToNextCheckPoint = newDistanceToNextCheckPoint;
-                    minIndexToNextCheckPoint = i;
-                }
-                if (newDistanceToHome < minDistanceToHome || i == 0) {
-                    minDistanceToHome = newDistanceToHome;
-                    minIndexToHome = i;
+                if(!route.getActive().get(i).equals("ABSENT")) {
+                    newDistanceToNextCheckPoint = haverSineDistance(busLatitude, busLongitude, routeLatitudes.get(i), routeLongitudes.get(i));
+                    if (newDistanceToNextCheckPoint < minDistanceToNextCheckPoint || i == 0) {
+                        minDistanceToNextCheckPoint = newDistanceToNextCheckPoint;
+                        minIndexToNextCheckPoint = i;
+                    }
                 }
             }
-            if (minIndexToHome < minIndexToNextCheckPoint) {
-                start = minIndexToHome;
-                end = minIndexToNextCheckPoint;
-            } else {
+            if (minIndexToNextCheckPoint < index) {
                 start = minIndexToNextCheckPoint;
-                end = minIndexToHome;
+                end = index;
+            } else {
+                start = index;
+                end = minIndexToNextCheckPoint;
             }
-            sumOfDistance = minDistanceToHome + minDistanceToNextCheckPoint;
+            sumOfDistance = minDistanceToNextCheckPoint;
             for (int i = start; i < end; i++) {
-                sumOfDistance += haverSineDistance(routeLatitudes.get(i), routeLongitudes.get(i), routeLatitudes.get(i + 1), routeLongitudes.get(i + 1));
+                if(!route.getActive().get(i).equals("ABSENT")) {
+                    sumOfDistance += haverSineDistance(routeLatitudes.get(i), routeLongitudes.get(i), routeLatitudes.get(i + 1), routeLongitudes.get(i + 1));
+                }
             }
             return sumOfDistance / velocity;
         }
         else{
-            return haverSineDistance(busLatitude, busLongitude, studentLatitude, studentLongitude) / velocity;
+            return haverSineDistance(busLatitude, busLongitude, route.getLatitudes().get(index), route.getLongitudes().get(index)) / velocity;
         }
     }
+
+
 }

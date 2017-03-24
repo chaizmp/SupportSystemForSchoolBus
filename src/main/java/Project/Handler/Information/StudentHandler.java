@@ -38,7 +38,11 @@ public class StudentHandler {
     @Autowired
     PersonHandler personHandler;
     public boolean setTypeOfService(TypeOfService typeOfService, int personId) {
-        return studentPersistent.setTypeOfService(typeOfService, personId);
+        if(positionPersistent.isInBus(personId) == IsInBus.YES) {
+            return studentPersistent.setTypeOfService(typeOfService, personId);
+        }else{
+            return false;
+        }
     }
 
     public ArrayList<Student> getAllStudentByPersonId(int personId, boolean needImage) {
@@ -194,5 +198,13 @@ public class StudentHandler {
         }
 
         return students;
+    }
+
+    public boolean cancelStudentTrip(ArrayList<Integer> personIds){
+        boolean result = true;
+        for(int it: personIds) {
+             result = studentPersistent.cancelStudentTrip(it) && result;
+        }
+        return result;
     }
 }

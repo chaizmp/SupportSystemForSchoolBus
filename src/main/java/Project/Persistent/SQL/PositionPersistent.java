@@ -3,6 +3,7 @@ package Project.Persistent.SQL;
 import Project.Mapper.PositionMapper;
 import Project.Model.Enumerator.*;
 import Project.Model.Position.Position;
+import Project.Model.Position.Route;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -114,7 +115,7 @@ public class PositionPersistent extends JdbcTemplate {
         }
     }
 
-    public Integer addRoute(ArrayList<Double> latitudes, ArrayList<Double> longitudes, Type type, String active, int personId) {
+    public Integer addRoute(ArrayList<Double> latitudes, ArrayList<Double> longitudes, Type type, ArrayList<String> active, ArrayList<Integer> personIds, ArrayList<String> temporary) {
 
         KeyHolder keyHolder = new GeneratedKeyHolder();
         update(connection ->
@@ -124,10 +125,26 @@ public class PositionPersistent extends JdbcTemplate {
         int result = 0;
         int i;
         for (i = 0; i < latitudes.size(); i++) {
-            result += update("INSERT INTO RoutePosition(routeNumber,sequenceNumber,latitude,longitude,active,personId) VALUES (?,?,?,?,?,?) ", routeNumber, i, latitudes.get(i)
-                    , longitudes.get(i), active, personId);
+            result += update("INSERT INTO RoutePosition(routeNumber,sequenceNumber,latitude,longitude,active,personId, temporary) VALUES (?,?,?,?,?,?,?) ", routeNumber, i, latitudes.get(i)
+                    , longitudes.get(i), active.get(i), personIds.get(i), temporary.get(i));
         }
         return result == i ? routeNumber : -1;
+    }
+
+    public boolean addTemporaryRoute(int routeNumber, double latitude, double longitude, String active, int personId, String temporary) {
+
+        List<Integer> sequenceNumbers = queryForList("SELECT sequenceNumber FROM routePosition WHERE routeNumber = ?", Integer.class, routeNumber);
+        try {
+            update("UPDATE routePosition SET active = 'NO' WHERE routeNumber = ? and personId = ?", routeNumber, personId);
+            update("DELETE FROM routePosition WHERE routeNumber = ? and personId = ? AND temporary = 'YES'", routeNumber, personId);
+            boolean result = update("INSERT INTO RoutePosition(routeNumber,sequenceNumber,latitude,longitude,active,personId, temporary) VALUES (?,?,?,?,?,?,?) ", routeNumber, sequenceNumbers.size(), latitude
+                    , longitude, active, personId, temporary) == 1;
+            return result;
+
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
     }
 
     public boolean deleteRoute(int routeNumber) {
@@ -183,7 +200,7 @@ public class PositionPersistent extends JdbcTemplate {
     }
 
     public SqlRowSet getBusRouteByCarId(int carId) {
-        return queryForRowSet("SELECT routePosition.routeNumber, routePosition.sequenceNumber, routePosition.latitude, routePosition.longitude FROM routePosition,busRoute WHERE busRoute.routeNumber = routePosition.routeNumber and carId = ? ORDER BY routePosition.routeNumber, routePosition.sequenceNumber ASC", carId);
+        return queryForRowSet("SELECT * FROM routePosition,busRoute WHERE busRoute.routeNumber = routePosition.routeNumber and carId = ? ORDER BY routePosition.routeNumber, routePosition.sequenceNumber ASC", carId);
     }
 
     public Position getCurrentBusPosition(int carId) {
@@ -288,5 +305,23 @@ public class PositionPersistent extends JdbcTemplate {
                     "AND isInBus = 'YES' ", Integer.class, carId, lunch, midNight);
         }
     }
-
+    public boolean deleteTemporary(Route route){
+        int routeNumber = route.getRouteNumber();
+        ArrayList<Integer> personIds = new ArrayList<>();
+        for(int i = 0; i< route.getLatitudes().size(); i++){
+            if(route.getTemporary().get(i).equals("YES")){
+                personIds.add(route.getPersonIds().get(i));
+            }
+        }
+        try {
+            update("DELETE FROM RoutePosition WHERE routeNumber = ? AND temporary = 'YES' ", routeNumber);
+            for (int it : personIds) {
+                update("UPDATE routePosition SET active = 'YES' WHERE routeNumber= ? AND personId = ?", routeNumber, it);
+            }
+            return true;
+        } catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

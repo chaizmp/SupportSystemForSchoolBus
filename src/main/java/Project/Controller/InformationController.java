@@ -52,12 +52,10 @@ public class InformationController {
     @RequestMapping(value = "saveCamera", method = RequestMethod.POST)
     public
     @ResponseBody
-    boolean setTypeOfService(@RequestParam(value = "carId") int carId,
+    boolean saveCamera(@RequestParam(value = "carId") int carId,
                              @RequestParam(value = "image") String image,
                              @RequestParam(value = "isFront") boolean isFront
     ) {
-
-
         Base64.Decoder dec = Base64.getDecoder();
         return busHandler.saveCameraImage(carId, dec.decode(image), isFront);
     }
@@ -65,7 +63,7 @@ public class InformationController {
     @RequestMapping(value = "getImageFromBus", method = RequestMethod.POST)
     public
     @ResponseBody
-    String setTypeOfService(@RequestParam(value = "carId") int carId
+    String getImageFromBus(@RequestParam(value = "carId") int carId
     ) {
         JSONObject imageJSON = new JSONObject();
         imageJSON.put("imageFront",busHandler.getImageFromBus(carId, true));
@@ -218,7 +216,8 @@ public class InformationController {
     String getBusDetail(
             @RequestParam(value = "personId") int personId
     ) {
-        Bus bus = busHandler.getCurrentBusCarIdByStudentId(personId);//latest time in the log
+        //Bus bus = busHandler.getCurrentBusCarIdByStudentId(personId);//latest time in the log
+        Bus bus = busHandler.getLatestBusCarIdByStudentId(personId);
         if(bus != null) {
             bus.setCarNumber(busHandler.getBusCarNumberByCarId(bus.getCarId()));
             ArrayList<Timestamp> startAndEndPeriod = positionHandler.getCurrentStartAndEndPeriodByStudentId(bus.getCarId(), personId);
@@ -291,4 +290,12 @@ public class InformationController {
         return result.toString();
     }
 
+    @RequestMapping(value= "cancelStudentTrip", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    boolean cancelStudentTrip(
+            @RequestParam(value = "personIds") ArrayList<Integer> personIds
+    ){
+        return studentHandler.cancelStudentTrip(personIds);
+    }
 }

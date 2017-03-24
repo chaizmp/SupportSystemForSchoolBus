@@ -9,6 +9,7 @@ import org.springframework.asm.Type;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.stereotype.Service;
+import sun.security.ec.ECDHKeyAgreement;
 
 import javax.sql.DataSource;
 import java.sql.Timestamp;
@@ -160,6 +161,15 @@ public class StudentPersistent extends JdbcTemplate {
         }catch (Exception e){
             e.printStackTrace();
             return new ArrayList<>();
+        }
+    }
+
+    public boolean cancelStudentTrip(int personId){
+        try{
+            return update("UPDATE student SET carId = ? WHERE personId = ?", null, personId) == 1;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
         }
     }
    /* public ArrayList<Timestamp> getCurrentStartAndEndPeriodByStudentId(String personId){

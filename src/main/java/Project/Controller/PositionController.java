@@ -10,7 +10,6 @@ import Project.Model.Enumerator.Status;
 import Project.Model.Enumerator.Type;
 import Project.Model.Person.Person;
 import Project.Model.Person.Student;
-import Project.Model.Position.Address;
 import Project.Model.Position.Bus;
 import Project.Model.Position.Position;
 import Project.Model.Position.Route;
@@ -92,13 +91,10 @@ public class PositionController {
             //ArrayList<Address> addresses = student.getAddresses();
             //Address address = addresses.get(0);
             if(route.getActive().get(i).equals("YES")) {
-                int personSId = route.getPersonId().get(i);
+                int personSId = route.getPersonIds().get(i);
                 Student student = studentHandler.getStudentByPersonId(personSId);
                 ArrayList<Person> persons = personHandler.getPersonsRelatedToStudent(personSId);
-                double studentLatitude = route.getLatitudes().get(i);
-                double studentLongitude = route.getLongitudes().get(i);
-                boolean temporary = route.getTemporary().get(i).equals("YES") ? true: false;
-                double estimateTime = positionHandler.estimateTime(averageVelocity, studentLatitude, studentLongitude, latitude, longitude, route, temporary);
+                double estimateTime = positionHandler.estimateTime(averageVelocity, route, i, latitude, longitude);
                 for (Person person : persons) {
                     int duration = personHandler.getPersonAlarm(student.getId());
                     if (duration != -1 && estimateTime <= duration * 60) {
@@ -133,10 +129,25 @@ public class PositionController {
             @RequestParam(value = "latitudes") ArrayList<Double> latitudes,
             @RequestParam(value = "longitudes") ArrayList<Double> longitudes,
             @RequestParam(value = "type") Type type,
-            @RequestParam(value = "active") String active,
-            @RequestParam(value = "personId") int personId
+            @RequestParam(value = "active") ArrayList<String> active,
+            @RequestParam(value = "temporary") ArrayList<String> temporary,
+            @RequestParam(value = "personIds") ArrayList<Integer> personIds
             ) {
-        return positionHandler.addRoute(latitudes, longitudes, type, active, personId);
+        return positionHandler.addRoute(latitudes, longitudes, type, active, personIds, temporary);
+    }
+
+    @RequestMapping(value = "addTemporary", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    boolean addTemporaryRoute(
+            @RequestParam(value = "routeNumber") int routeNumber,
+            @RequestParam(value = "latitude") double latitude,
+            @RequestParam(value = "longitude") double longitude,
+            @RequestParam(value = "active") String active,
+            @RequestParam(value = "temporary") String temporary,
+            @RequestParam(value = "personId") int personId
+    ) {
+        return positionHandler.addTemporaryRoute(routeNumber, latitude, longitude, active, personId, temporary);
     }
 
     @RequestMapping(value = "getAllBusRoute", method = RequestMethod.POST)
@@ -182,19 +193,28 @@ public class PositionController {
     public
     @ResponseBody
     double setBusRoute(
-            @RequestParam(value = "carId") int carId,
-            @RequestParam(value = "latitude") double latitude,
-            @RequestParam(value = "longitude") double longitude,
-            @RequestParam(value = "temporary") boolean temporary
+            @RequestParam(value = "personId") int personId
     ) {
-        Route route = busHandler.getBusRoutinelyUsedRoute(carId);
-        Bus bus = busHandler.getCurrentBusPosition(carId);
-        double velocity = busHandler.getAverageVelocity(carId);
-        if(velocity == 0){
-            return -1;
+        Bus checkBus = busHandler.getCurrentBusCarIdByStudentId(personId);
+        if(checkBus != null) {
+            int carId = checkBus.getCarId();
+            Route route = busHandler.getBusRoutinelyUsedRoute(carId);
+            Bus bus = busHandler.getCurrentBusPosition(carId);
+            double velocity = busHandler.getAverageVelocity(carId);
+            if (velocity == 0) {
+                return -1;
+            }
+            double currentLatitude = bus.getCurrentLatitude();
+            double currentLongitude = bus.getCurrentLongitude();
+            int index = 0;
+            for(int i = 0; i < route.getPersonIds().size(); i++){
+                if(route.getPersonIds().get(i) == personId){
+                    index = i;
+                    i = route.getPersonIds().size();
+                }
+            }
+            return positionHandler.estimateTime(velocity, route, index, currentLatitude, currentLongitude);
         }
-        double currentLatitude = bus.getCurrentLatitude();
-        double currentLongitude = bus.getCurrentLongitude();
-        return positionHandler.estimateTime(velocity, latitude, longitude, currentLatitude, currentLongitude, route, temporary);
+        return -1;
     }
 }

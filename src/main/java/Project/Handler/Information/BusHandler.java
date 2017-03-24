@@ -34,6 +34,10 @@ public class BusHandler {
         return busPersistent.getCurrentBusCarIdByStudentId(personId);
     }
 
+    public Bus getLatestBusCarIdByStudentId(int personId) {
+        return busPersistent.getLatestBusCarIdByStudentId(personId);
+    }
+
     // A solution to get the bus trip that a student takes is
     // to make the bus log period subset of bus position
     // when the first person gets on, a record which has status 'START' will be inserted into the bus position table too

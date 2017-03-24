@@ -57,15 +57,18 @@ public class NotificationHandler {
     }
 
     public ArrayList<String> alarm(String carNumber, String token, String firstName, String surname){
-        ArrayList<String> responseList = new ArrayList<>();
-        NotificationMessage notificationMessage = new NotificationMessage();
-        NotificationForm notificationForm = new NotificationForm();
-        notificationForm.setTitle("Support System For School Bus");
-        notificationForm.setBody(carNumber+": your child("+firstName+" "+surname+") took will arrive at home in few minutes");
-        notificationMessage.setNotification(notificationForm);
-        notificationMessage.setTo(token);
-        responseList.add(apiCall.sendGetOnOrOffNotificationToPersons(notificationMessage));
-        return responseList;
+        if(token != null) {
+            ArrayList<String> responseList = new ArrayList<>();
+            NotificationMessage notificationMessage = new NotificationMessage();
+            NotificationForm notificationForm = new NotificationForm();
+            notificationForm.setTitle("Support System For School Bus");
+            notificationForm.setBody(carNumber + ": your child(" + firstName + " " + surname + ") took will arrive at home in few minutes");
+            notificationMessage.setNotification(notificationForm);
+            notificationMessage.setTo(token);
+            responseList.add(apiCall.sendGetOnOrOffNotificationToPersons(notificationMessage));
+            return responseList;
+        }
+        return null;
     }
 
 }
