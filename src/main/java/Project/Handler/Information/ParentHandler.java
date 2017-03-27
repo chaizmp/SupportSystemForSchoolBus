@@ -1,6 +1,7 @@
 package Project.Handler.Information;
 
 import Project.Model.Person.Parent;
+import Project.Model.Person.Person;
 import Project.Persistent.SQL.ParentPersistent;
 import Project.Persistent.SQL.PersonPersistent;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -34,5 +35,9 @@ public class ParentHandler {
             }
         }
         return result;
+    }
+
+    public ArrayList<Person> getAllParents(){
+        return parentPersistent.getAllParents();
     }
 }

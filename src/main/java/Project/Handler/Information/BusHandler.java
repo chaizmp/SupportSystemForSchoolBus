@@ -76,7 +76,7 @@ public class BusHandler {
 
     public boolean saveCameraImage(int carId, byte[] imageFront, boolean isFront){
         try {
-            String filename = isFront? "front.jpeg":"back.jpeg";
+            String filename = isFront? "front.jpg":"back.jpg";
             String path = new File(".").getCanonicalPath()+"\\busData\\"+carId+"\\img\\"+filename;
             File file = new File(path);
             file.getParentFile().mkdirs();
@@ -91,7 +91,7 @@ public class BusHandler {
     }
 
     public String getImageFromBus(int carId, boolean isFront){
-        String filename = isFront? "front.jpeg":"back.jpeg";
+        String filename = isFront? "front.jpg":"back.jpg";
         try {
             String path = new File(".").getCanonicalPath() + "\\busData\\" + carId + "\\img\\" + filename;
             InputStream in = new BufferedInputStream(new FileInputStream(path));

@@ -2,6 +2,7 @@ package Project.Controller;
 
 import Project.Handler.Information.BusHandler;
 import Project.Handler.Information.PersonHandler;
+import Project.Handler.Information.SchoolHandler;
 import Project.Handler.Information.StudentHandler;
 import Project.Handler.Notification.NotificationHandler;
 import Project.Handler.Position.PositionHandler;
@@ -13,7 +14,9 @@ import Project.Model.Person.Student;
 import Project.Model.Position.Bus;
 import Project.Model.Position.Position;
 import Project.Model.Position.Route;
+import Project.Model.School;
 import Project.Persistent.SQL.PersonPersistent;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 
@@ -39,6 +42,8 @@ public class PositionController {
     PersonHandler personHandler;
     @Autowired
     NotificationHandler notificationHandler;
+    @Autowired
+    SchoolHandler schoolHandler;
 
     @RequestMapping(value = "getBusCurrentPosition", method = RequestMethod.POST)
     public
@@ -68,8 +73,11 @@ public class PositionController {
                                          @RequestParam(value = "personId") int personId
     ) {
         Timestamp atTime = positionHandler.getLatestAtTimeByStudentId(personId);
-        int carId = busHandler.getBusCarIdByStudentIdAndAtTime(personId, atTime).getCarId();
-        return positionHandler.getActualRouteInTripByAtTime(carId, atTime);
+        if(atTime != null) {
+            int carId = busHandler.getBusCarIdByStudentIdAndAtTime(personId, atTime).getCarId();
+            return positionHandler.getActualRouteInTripByAtTime(carId, atTime);
+        }
+        return new ArrayList<>();
     }
 
     @RequestMapping(value = "addBusPosition", method = RequestMethod.POST)
@@ -86,20 +94,22 @@ public class PositionController {
         boolean result = positionHandler.addBusPosition(carId, latitude, longitude, status);
         double averageVelocity = positionHandler.setVelocity(carId, bus.getCurrentLatitude(), bus.getCurrentLongitude(), latitude, longitude);
         Route route = busHandler.getBusRoutinelyUsedRoute(carId);
-        for (int i = 0; i < route.getLatitudes().size(); i++) {
-            //student.setAddresses(personPersistent.getPersonAddressesByPersonId(student.getId()));
-            //ArrayList<Address> addresses = student.getAddresses();
-            //Address address = addresses.get(0);
-            if(route.getActive().get(i).equals("YES")) {
-                int personSId = route.getPersonIds().get(i);
-                Student student = studentHandler.getStudentByPersonId(personSId);
-                ArrayList<Person> persons = personHandler.getPersonsRelatedToStudent(personSId);
-                double estimateTime = positionHandler.estimateTime(averageVelocity, route, i, latitude, longitude);
-                for (Person person : persons) {
-                    int duration = personHandler.getPersonAlarm(student.getId());
-                    if (duration != -1 && estimateTime <= duration * 60) {
-                        String carNumber = busHandler.getBusCarNumberByCarId(carId);
-                        notificationHandler.alarm(carNumber, person.getToken(), student.getFirstName(), student.getSurName());
+        if(route.getLatitudes().size() == 0) {
+            for (int i = 0; i < route.getLatitudes().size(); i++) {
+                //student.setAddresses(personPersistent.getPersonAddressesByPersonId(student.getId()));
+                //ArrayList<Address> addresses = student.getAddresses();
+                //Address address = addresses.get(0);
+                if (route.getActive().get(i).equals("YES")) {
+                    int personSId = route.getPersonIds().get(i);
+                    Student student = studentHandler.getStudentByPersonId(personSId);
+                    ArrayList<Person> persons = personHandler.getPersonsRelatedToStudent(personSId);
+                    double estimateTime = positionHandler.estimateTime(averageVelocity, route, i, latitude, longitude);
+                    for (Person person : persons) {
+                        int duration = personHandler.getPersonAlarm(student.getId());
+                        if (duration != -1 && estimateTime <= duration * 60) {
+                            String carNumber = busHandler.getBusCarNumberByCarId(carId);
+                            notificationHandler.alarm(carNumber, person.getToken(), student.getFirstName(), student.getSurName());
+                        }
                     }
                 }
             }
@@ -111,7 +121,7 @@ public class PositionController {
     public
     @ResponseBody
         // return type and body not yet finished
-    boolean getOnOrOffBus( //get all possible route to the student's home or the school
+    String getOnOrOffBus( //get all possible route to the student's home or the school
                             @RequestParam(value = "carId") int carId,
                             @RequestParam(value = "personId") int personId,
                             @RequestParam(value = "latitude") double latitude,
@@ -119,7 +129,36 @@ public class PositionController {
                             @RequestParam(value = "isStudent") boolean isStudent,
                             @RequestParam(value = "isInBus", required = false) IsInBus isInBus
     ) {
-        return positionHandler.getOnOrOffBus(carId, personId, latitude, longitude, isStudent, isInBus);
+        JSONObject result = new JSONObject();
+        Route r = busHandler.getBusRoutinelyUsedRoute(carId);
+        double homeLat = 0;
+        double homeLng = 0;
+        int i = 0;
+        if(r.getType() == Type.HOME) {
+            while (i < r.getLatitudes().size()) {
+                if (r.getActive().get(i).equals("YES") && r.getPersonIds().get(i) == personId) {
+                    homeLat = r.getLatitudes().get(i);
+                    homeLng = r.getLongitudes().get(i);
+                }
+                i++;
+            }
+        }
+        else{
+            School school = schoolHandler.getSchoolDetail("KMITL");
+            homeLat = school.getLatitude();
+            homeLng = school.getLongitude();
+        }
+        double dist = positionHandler.haverSineDistance(latitude,longitude,homeLat,homeLng);
+        if(dist >= 100){
+            isInBus = IsInBus.TEMP;
+        }
+        result.put("isInBus",positionHandler.getOnOrOffBus(carId, personId, latitude, longitude, isStudent, isInBus));
+        //
+        result.put("personId", personId);
+        Person person = personHandler.getPersonByPersonId(personId);
+        result.put("firstName", person.getFirstName());
+        result.put("surname", person.getSurName());
+        return result.toString();
     }
 
     @RequestMapping(value = "addRoute", method = RequestMethod.POST)
@@ -192,13 +231,16 @@ public class PositionController {
     @RequestMapping(value = "estimateTime", method = RequestMethod.POST)
     public
     @ResponseBody
-    double setBusRoute(
+    double estimateTime(
             @RequestParam(value = "personId") int personId
     ) {
         Bus checkBus = busHandler.getCurrentBusCarIdByStudentId(personId);
         if(checkBus != null) {
             int carId = checkBus.getCarId();
             Route route = busHandler.getBusRoutinelyUsedRoute(carId);
+            if(route.getLatitudes().size() == 0){
+                return -1;
+            }
             Bus bus = busHandler.getCurrentBusPosition(carId);
             double velocity = busHandler.getAverageVelocity(carId);
             if (velocity == 0) {
@@ -207,11 +249,15 @@ public class PositionController {
             double currentLatitude = bus.getCurrentLatitude();
             double currentLongitude = bus.getCurrentLongitude();
             int index = 0;
-            for(int i = 0; i < route.getPersonIds().size(); i++){
-                if(route.getPersonIds().get(i) == personId){
-                    index = i;
-                    i = route.getPersonIds().size();
+            if(route.getType() == Type.HOME) {
+                for (int i = 0; i < route.getPersonIds().size(); i++) {
+                    if (route.getPersonIds().get(i) == personId) {
+                        index = i;
+                        i = route.getPersonIds().size();
+                    }
                 }
+            }else{
+                index = route.getActive().size() - 1;
             }
             return positionHandler.estimateTime(velocity, route, index, currentLatitude, currentLongitude);
         }

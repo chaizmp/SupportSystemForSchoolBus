@@ -15,6 +15,7 @@ import Project.Model.Person.Teacher;
 import Project.Model.Position.Bus;
 import Project.Model.Position.Position;
 import Project.Model.Position.Route;
+import Project.Model.School;
 import Project.Persistent.SQL.PositionPersistent;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
@@ -48,6 +49,8 @@ public class PositionHandler {
     TeacherHandler teacherHandler;
     @Autowired
     DriverHandler driverHandler;
+    @Autowired
+    SchoolHandler schoolHandler;
 
     public ArrayList<Timestamp> getCurrentStartAndEndPeriodByStudentId(int carId, int personId) {
         ArrayList<Timestamp> period = new ArrayList<>();
@@ -73,6 +76,14 @@ public class PositionHandler {
 
 
     public Integer addRoute(ArrayList<Double> latitudes, ArrayList<Double> longitudes, Type type, ArrayList<String> active, ArrayList<Integer> personIds, ArrayList<String> temporary) {
+        School school = schoolHandler.getSchoolDetail("KMITL");
+        if(type == Type.SCHOOL){
+            latitudes.add(school.getLatitude());
+            longitudes.add(school.getLongitude());
+            active.add("YES");
+            personIds.add(-2);
+            temporary.add("NO");
+        }
         return positionPersistent.addRoute(latitudes, longitudes, type, active, personIds, temporary);
     }
 
@@ -160,18 +171,21 @@ public class PositionHandler {
         return busList;
     }
 
-    public boolean getOnOrOffBus(int carId, int personId, Double latitude, Double longitude, boolean isStudent, IsInBus inBus) {
+    public IsInBus getOnOrOffBus(int carId, int personId, Double latitude, Double longitude, boolean isStudent, IsInBus inBus) {
 
         // don't forget that the bus driver isn't the last person. we count only the students.
         IsInBus isInBus = positionPersistent.isInBus(personId);
         String onOrOff = "OFF";
-        if (isInBus == IsInBus.NO) {
+        if (isInBus == IsInBus.NO ) {
             onOrOff = "ON";
             isInBus = IsInBus.YES;
-        } else {
+        } else if(isInBus == IsInBus.YES) {
             isInBus = IsInBus.NO;
         }
-        if(inBus != null){
+        else{
+            isInBus = IsInBus.YES;
+        }
+        if(inBus != null && inBus == IsInBus.TEMP && isInBus == IsInBus.NO){
             isInBus = inBus;
         }
         Status status;
@@ -232,7 +246,7 @@ public class PositionHandler {
                 apiCall.sendGetOnOrOffNotificationToPersons(notificationMessage);
             }
         }
-        return isInBus != IsInBus.YES;
+        return isInBus;
     }
 
     public boolean isLastPerson(int personId, int carId, Timestamp now, Timestamp lunch, Timestamp midNight) {
@@ -260,13 +274,17 @@ public class PositionHandler {
     }
 
     public double haverSineDistance(double previousLatitude, double previousLongitude, double currentLatitude, double currentLongitude){
-        int earthRadius = 6378137;
-        double deltaLat = previousLatitude-currentLatitude;
-        double deltaLon = previousLongitude-currentLongitude;
-        double a = Math.sin(deltaLat/2)* Math.sin(deltaLat/2)+Math.cos(previousLatitude)*Math.cos(currentLatitude)*Math.sin(deltaLon/2)*Math.sin(deltaLon/2);
+        double earthRadius = 6378137;
+        double deltaLat = degreeToRadiant(previousLatitude-currentLatitude);
+        double deltaLon = degreeToRadiant(previousLongitude-currentLongitude);
+        double a = Math.sin(deltaLat/2)* Math.sin(deltaLat/2)+Math.cos(degreeToRadiant(previousLatitude))*Math.cos(degreeToRadiant(currentLatitude))*Math.sin(deltaLon/2)*Math.sin(deltaLon/2);
         double c =2* Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
         double d = earthRadius*c;
         return d;
+    }
+
+    public double degreeToRadiant(double degree){
+        return degree * (Math.PI/180);
     }
 
     public Route getBusRoutinelyUsedRoute(int carId){
@@ -277,22 +295,28 @@ public class PositionHandler {
         ArrayList<String> actives = new ArrayList<>();
         ArrayList<Integer> personIds = new ArrayList<>();
         ArrayList<String> temporaries = new ArrayList<>();
-        while (sqlRowSet.next()) {
-            if (sqlRowSet.isFirst()) {
-                route.setRouteNumber(sqlRowSet.getInt("routeNumber"));
+        try {
+            while (sqlRowSet.next()) {
+                if (sqlRowSet.isFirst()) {
+                    route.setRouteNumber(sqlRowSet.getInt("routeNumber"));
+                    route.setType(Type.valueOf(sqlRowSet.getString("type")));
+                }
+                latitudes.add(sqlRowSet.getDouble("latitude"));
+                longitudes.add(sqlRowSet.getDouble("longitude"));
+                actives.add(sqlRowSet.getString("active"));
+                personIds.add(sqlRowSet.getInt("personId"));
+                temporaries.add(sqlRowSet.getString("temporary"));
             }
-            latitudes.add(sqlRowSet.getDouble("latitude"));
-            longitudes.add(sqlRowSet.getDouble("longitude"));
-            actives.add(sqlRowSet.getString("active"));
-            personIds.add(sqlRowSet.getInt("personId"));
-            temporaries.add(sqlRowSet.getString("temporary"));
+            route.setLatitudes(latitudes);
+            route.setLongitudes(longitudes);
+            route.setActive(actives);
+            route.setPersonIds(personIds);
+            route.setTemporary(temporaries);
+            return route;
+        }catch(Exception e){
+            e.printStackTrace();
+            return null;
         }
-        route.setLatitudes(latitudes);
-        route.setLongitudes(longitudes);
-        route.setActive(actives);
-        route.setPersonIds(personIds);
-        route.setTemporary(temporaries);
-        return route;
     }
 
     public double estimateTime(double velocity, Route route, int index, double busLatitude, double busLongitude){
@@ -334,5 +358,8 @@ public class PositionHandler {
         }
     }
 
+    public boolean clearTrip(){
+        return positionPersistent.clearTrip();
+    }
 
 }

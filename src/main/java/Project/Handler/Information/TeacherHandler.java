@@ -1,5 +1,6 @@
 package Project.Handler.Information;
 
+import Project.Model.Person.Person;
 import Project.Model.Person.Teacher;
 import Project.Persistent.SQL.PersonPersistent;
 import Project.Persistent.SQL.TeacherPersistent;
@@ -48,5 +49,9 @@ public class TeacherHandler {
             }
         }
         return result;
+    }
+
+    public ArrayList<Person> getAllTeachers(){
+        return teacherPersistent.getAllTeachers();
     }
 }

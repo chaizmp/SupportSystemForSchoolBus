@@ -57,10 +57,10 @@ public class MemberController {
             @RequestParam(value = "name") String name,
             @RequestParam(value = "surname") String surname,
             @RequestParam(value = "tel") String tel,
-            @RequestParam(value = "latitudes") ArrayList<Double> latitudes,
-            @RequestParam(value = "longitudes") ArrayList<Double> longitudes,
-            @RequestParam(value = "details") ArrayList<String> details,
-            @RequestParam(value = "image") String image
+            @RequestParam(value = "latitudes", required = false) ArrayList<Double> latitudes,
+            @RequestParam(value = "longitudes", required = false) ArrayList<Double> longitudes,
+            @RequestParam(value = "details", required = false) ArrayList<String> details,
+            @RequestParam(value = "image", required = false) String image
             ) {
         boolean result = memberHandler.signUp(username, password, name, surname, role, tel, latitudes, longitudes, details, image);
         return result;
@@ -99,11 +99,12 @@ public class MemberController {
             @RequestParam(value = "tel") String tel,
             @RequestParam(value = "studentId") String studentId,
             @RequestParam(value = "typeOfService") TypeOfService typeOfService,
-            @RequestParam(value = "latitudes") ArrayList<Double> latitudes,
-            @RequestParam(value = "longitudes") ArrayList<Double> longitudes,
-            @RequestParam(value = "details") ArrayList<String> details,
-            @RequestParam(value=  "image") String image
+            @RequestParam(value = "latitudes", required = false) ArrayList<Double> latitudes,
+            @RequestParam(value = "longitudes", required = false) ArrayList<Double> longitudes,
+            @RequestParam(value = "details", required = false) ArrayList<String> details,
+            @RequestParam(value=  "image", required = false) String image
     ){
+
         return memberHandler.studentSignUp(studentId, name, surname, tel, latitudes, longitudes, details, typeOfService, image);
     }
 }

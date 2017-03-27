@@ -66,7 +66,7 @@ public class PersonHandler {
     }
     public boolean savePersonImage(String image, int personId){
         try {
-            String path = new File(".").getCanonicalPath()+"\\userData\\"+personId+"\\img\\face.jpeg";
+            String path = new File(".").getCanonicalPath()+"\\userData\\"+personId+"\\img\\face.jpg";
             File file = new File(path);
             file.getParentFile().mkdirs();
             FileOutputStream fos = new FileOutputStream(path);
@@ -80,7 +80,7 @@ public class PersonHandler {
     }
     public String getPersonImage(int personId){
         try {
-            String path = new File(".").getCanonicalPath() + "\\userData\\" + personId + "\\img\\face.jpeg";
+            String path = new File(".").getCanonicalPath() + "\\userData\\" + personId + "\\img\\face.jpg";
             InputStream in = new BufferedInputStream(new FileInputStream(path));
             ByteArrayOutputStream out = new ByteArrayOutputStream();
             byte[] buf = new byte[1024];

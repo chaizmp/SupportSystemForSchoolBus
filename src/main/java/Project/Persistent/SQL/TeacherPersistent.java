@@ -1,6 +1,8 @@
 package Project.Persistent.SQL;
 
+import Project.Mapper.PersonMapper;
 import Project.Mapper.TeacherMapper;
+import Project.Model.Person.Person;
 import Project.Model.Person.Teacher;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
@@ -75,6 +77,15 @@ public class TeacherPersistent extends JdbcTemplate {
         }catch(Exception e){
             e.printStackTrace();
             return false;
+        }
+    }
+
+    public ArrayList<Person> getAllTeachers(){
+        try{
+            return new ArrayList<>(query("SELECT * FROM Person WHERE Role = 'TEACHER'", new PersonMapper()));
+        }catch(Exception e){
+            e.printStackTrace();
+            return new ArrayList<>();
         }
     }
 }

@@ -40,8 +40,12 @@ public class MemberHandler {
         int mainTableResult = personPersistent.addPerson(username, hash, enc.encodeToString(salt), name, surname, role, tel);
         //***************** get that key
         if(mainTableResult != -1){
-            personHandler.addPersonAddressById(mainTableResult, latitudes, longitudes, details);
-            personHandler.savePersonImage(image, mainTableResult);
+            if(latitudes != null) {
+                personHandler.addPersonAddressById(mainTableResult, latitudes, longitudes, details);
+            }
+            if(image != null) {
+                personHandler.savePersonImage(image, mainTableResult);
+            }
             switch (role) {
                 case PARENT:
                     parentPersistent.addParent(mainTableResult);
@@ -61,8 +65,12 @@ public class MemberHandler {
         int mainTableResult = personPersistent.addPerson(null, null, null, name, surname, Role.STUDENT, tel);
         //***************** get that key
         if(mainTableResult != -1){
-            personHandler.addPersonAddressById(mainTableResult, latitudes, longitudes, details);
-            personHandler.savePersonImage(image, mainTableResult);
+            if(latitudes != null) {
+                personHandler.addPersonAddressById(mainTableResult, latitudes, longitudes, details);
+            }
+            if(image != null) {
+                personHandler.savePersonImage(image, mainTableResult);
+            }
             studentPersistent.addStudent(studentId, typeOfService, mainTableResult);
         }
         return mainTableResult != -1;

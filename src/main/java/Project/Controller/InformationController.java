@@ -277,6 +277,22 @@ public class InformationController {
         return studentHandler.getAllStudentInCurrentTrip(carId, false);
     }
 
+    @RequestMapping(value = "getAllParents", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    ArrayList<Person> getAllParents(
+    ){
+        return parentHandler.getAllParents();
+    }
+
+    @RequestMapping(value = "getAllTeachers", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    ArrayList<Person> getAllTeachers(
+    ){
+        return teacherHandler.getAllTeachers();
+    }
+
     @RequestMapping(value = "getPersonImage", method = RequestMethod.POST)
     public
     @ResponseBody
@@ -298,4 +314,21 @@ public class InformationController {
     ){
         return studentHandler.cancelStudentTrip(personIds);
     }
+
+    @RequestMapping(value= "clearTrip", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    boolean clearTrip(
+    ){
+        return positionHandler.clearTrip();
+    }
+
+    @RequestMapping(value= "testVelo", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    double testVelo(
+    ) {
+        return positionHandler.haverSineDistance(13.7292399000, 100.7757240000, 13.7292515000, 100.7754596000);
+    }
 }
+

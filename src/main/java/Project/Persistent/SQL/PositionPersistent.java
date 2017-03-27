@@ -153,7 +153,11 @@ public class PositionPersistent extends JdbcTemplate {
     }
 
     public boolean setBusRoute(int carId, int routeNumber) {
-        return update("INSERT INTO busRoute(carId,RouteNumber) VALUES(?,?)", carId, routeNumber) == 1;
+        if(routeNumber != -1) {
+            return update("INSERT INTO busRoute(carId,RouteNumber) VALUES(?,?)", carId, routeNumber) == 1;
+        }else{
+            return update("INSERT INTO busRoute(carId,RouteNumber) VALUES(?,?)", carId, null) == 1;
+        }
     }
 
     public IsInBus isInBus(int personId) {
@@ -200,7 +204,10 @@ public class PositionPersistent extends JdbcTemplate {
     }
 
     public SqlRowSet getBusRouteByCarId(int carId) {
-        return queryForRowSet("SELECT * FROM routePosition,busRoute WHERE busRoute.routeNumber = routePosition.routeNumber and carId = ? ORDER BY routePosition.routeNumber, routePosition.sequenceNumber ASC", carId);
+        return queryForRowSet("SELECT * FROM routePosition,busRoute,route WHERE busRoute.routeNumber = route.routeNumber " +
+                "AND busRoute.routeNumber = routePosition.routeNumber " +
+                "AND carId = ? " +
+                "AND busRoute.useTime = ( SELECT MAX(useTime) from busRoute WHERE carId = ? ) ORDER BY routePosition.routeNumber, routePosition.sequenceNumber ASC", carId, carId);
     }
 
     public Position getCurrentBusPosition(int carId) {
@@ -320,6 +327,24 @@ public class PositionPersistent extends JdbcTemplate {
             }
             return true;
         } catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean clearTrip(){
+        boolean result1;
+        boolean result2;
+        boolean result3;
+        boolean result4;
+        String a = null;
+        try{
+            result1 = update("DELETE FROM personInBus") >= 1;
+            result2 = update("DELETE FROM busPosition") >= 1;
+            result3 = update("UPDATE student SET carId = ?", a) >= 1;
+            result4 = update("UPDATE bus SET averageVelocity = 0 , checkPointPassed = 0 ") >= 1;
+            return result1 && result2 && result3 && result4;
+        }catch(Exception e){
             e.printStackTrace();
             return false;
         }
