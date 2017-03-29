@@ -64,8 +64,8 @@ public class BusPersistent extends JdbcTemplate {
     public Bus getCurrentBusPosition(int carId) {
         Bus result;
         try {
-            result = queryForObject("SELECT * FROM BusPosition WHERE atTime = " +
-                            "(SELECT MAX(atTime) FROM BusPosition WHERE carId = ? )", (rs, rowNum) ->
+            result = queryForObject("SELECT * FROM BusPosition WHERE positionId = " +
+                            "(SELECT MAX(positionId) FROM BusPosition WHERE carId = ? )", (rs, rowNum) ->
                             new Bus(rs.getInt("carId"), rs.getDouble("latitude"), rs.getDouble("longitude"))
                     , carId);
         } catch (Exception e) {

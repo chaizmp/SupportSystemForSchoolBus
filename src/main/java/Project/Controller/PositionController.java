@@ -88,10 +88,11 @@ public class PositionController {
                             @RequestParam(value = "carId") int carId,
                             @RequestParam(value = "latitude") double latitude,
                             @RequestParam(value = "longitude") double longitude,
-                            @RequestParam(value = "status") Status status
+                            @RequestParam(value = "status") Status status,
+                            @RequestParam(value = "timestamp") long timestamp
     ) {
         Bus bus = busHandler.getCurrentBusPosition(carId);
-        boolean result = positionHandler.addBusPosition(carId, latitude, longitude, status);
+        boolean result = positionHandler.addBusPosition(carId, latitude, longitude, status, new Timestamp(timestamp));
         double averageVelocity = positionHandler.setVelocity(carId, bus.getCurrentLatitude(), bus.getCurrentLongitude(), latitude, longitude);
         Route route = busHandler.getBusRoutinelyUsedRoute(carId);
         if(route.getLatitudes().size() == 0) {
@@ -103,7 +104,7 @@ public class PositionController {
                     int personSId = route.getPersonIds().get(i);
                     Student student = studentHandler.getStudentByPersonId(personSId);
                     ArrayList<Person> persons = personHandler.getPersonsRelatedToStudent(personSId);
-                    double estimateTime = positionHandler.estimateTime(averageVelocity, route, i, latitude, longitude);
+                    double estimateTime = positionHandler.estimateTime(carId, averageVelocity, route, i, latitude, longitude);
                     for (Person person : persons) {
                         int duration = personHandler.getPersonAlarm(student.getId());
                         if (duration != -1 && estimateTime <= duration * 60) {
@@ -259,7 +260,7 @@ public class PositionController {
             }else{
                 index = route.getActive().size() - 1;
             }
-            return positionHandler.estimateTime(velocity, route, index, currentLatitude, currentLongitude);
+            return positionHandler.estimateTime(carId, velocity, route, index, currentLatitude, currentLongitude);
         }
         return -1;
     }

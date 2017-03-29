@@ -106,12 +106,21 @@ public class PositionPersistent extends JdbcTemplate {
         return new ArrayList<>(positionList);
     }
 
-    public boolean addBusPosition(int carId, double latitude, double longitude, Status status) {
-        try {
-            return update("INSERT INTO busPosition(carId,latitude,longitude,status) VALUES (?,?,?,?)", carId, latitude, longitude,
-                    status.toString()) > 0;
-        } catch (Exception e) {
-            return false;
+    public boolean addBusPosition(int carId, double latitude, double longitude, Status status, Timestamp timestamp) {
+        if(timestamp != null) {
+            try {
+                return update("INSERT INTO busPosition(carId,latitude,longitude,status,atTime) VALUES (?,?,?,?,?)", carId, latitude, longitude,
+                        status.toString(), timestamp) > 0;
+            } catch (Exception e) {
+                return false;
+            }
+        }else{
+            try {
+                return update("INSERT INTO busPosition(carId,latitude,longitude,status) VALUES (?,?,?,?)", carId, latitude, longitude,
+                        status.toString()) > 0;
+            } catch (Exception e) {
+                return false;
+            }
         }
     }
 

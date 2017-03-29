@@ -22,10 +22,7 @@ import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
 
 import java.sql.Timestamp;
-import java.util.ArrayList;
-import java.util.Calendar;
-import java.util.GregorianCalendar;
-import java.util.List;
+import java.util.*;
 
 ;import static java.util.stream.Collectors.toList;
 
@@ -62,6 +59,9 @@ public class PositionHandler {
 
     public Timestamp getLatestAtTimeByStudentId(int personId) {
         return positionPersistent.getLatestAtTimeByStudentId(personId);
+
+
+
     }
 
     public ArrayList<Position> getActualRouteInTripByAtTime(int carId, Timestamp atTime) {
@@ -70,8 +70,8 @@ public class PositionHandler {
         return positionPersistent.getActualRouteInBusByPeriod(carId, startTime, endTime);
     }
 
-    public boolean addBusPosition(int carId, double latitude, double longitude, Status status) {
-        return positionPersistent.addBusPosition(carId, latitude, longitude, status);
+    public boolean addBusPosition(int carId, double latitude, double longitude, Status status, Timestamp timestamp) {
+        return positionPersistent.addBusPosition(carId, latitude, longitude, status, timestamp);
     }
 
 
@@ -211,7 +211,7 @@ public class PositionHandler {
 
         if (isInBus != IsInBus.TEMP && positionPersistent.isFirstPerson(carId, now, time, midNight)) {
             status = Status.PERSONSTART;
-            positionPersistent.addBusPosition(carId, latitude, longitude, status);
+            positionPersistent.addBusPosition(carId, latitude, longitude, status, null);
             status = Status.START;
             // can be the driver
         } else if (isStudent && isInBus == IsInBus.NO && isLastPerson(personId, carId, now, time, midNight)) {
@@ -226,7 +226,7 @@ public class PositionHandler {
             Route route = busHandler.getBusRoutinelyUsedRoute(carId);
             positionPersistent.deleteTemporary(route);
             status = Status.FINISH;
-            positionPersistent.addBusPosition(carId, latitude, longitude, status);
+            positionPersistent.addBusPosition(carId, latitude, longitude, status, null);
             studentHandler.addStudentsTrip(studentHandler.getAllStudentsUsedToBeOnBusInCurrentTrip(carId, now, time, midNight), -1);
             busHandler.setVelocityToZero(carId);
             // the last student not the driver
@@ -318,23 +318,51 @@ public class PositionHandler {
             return null;
         }
     }
-
-    public double estimateTime(double velocity, Route route, int index, double busLatitude, double busLongitude){
+    //refactor after paper submission
+    public double estimateTime(int carId, double velocity, Route route, int index, double busLatitude, double busLongitude){
         ArrayList<Double> routeLatitudes = route.getLatitudes();
         ArrayList<Double> routeLongitudes = route.getLongitudes();
         double minDistanceToNextCheckPoint = 9999999;
-        double newDistanceToNextCheckPoint;
+        //double newDistanceToNextCheckPoint;
         int minIndexToNextCheckPoint = -1;
         int start;
         int end;
+        ArrayList<Student> students = studentHandler.getAllStudentInCurrentTrip(carId, false);
+        Iterator<Student> itr = students.iterator();
+        if(route.getType() == Type.SCHOOL) {
+            while (itr.hasNext()) {
+                Student stu = itr.next();
+                if (stu.getInBus() != IsInBus.ABSENT) {
+                    itr.remove();
+                }
+            }
+        }else{
+            while (itr.hasNext()) {
+                Student stu = itr.next();
+
+                if (stu.getInBus() != IsInBus.NO) {
+                    itr.remove();
+                }
+            }
+        }
         double sumOfDistance;
         if(!route.getTemporary().get(index).equals("YES")) {
             for (int i = 0; i < routeLatitudes.size(); i++) {
                 if(!route.getActive().get(i).equals("ABSENT")) {
-                    newDistanceToNextCheckPoint = haverSineDistance(busLatitude, busLongitude, routeLatitudes.get(i), routeLongitudes.get(i));
-                    if (newDistanceToNextCheckPoint < minDistanceToNextCheckPoint || i == 0) {
-                        minDistanceToNextCheckPoint = newDistanceToNextCheckPoint;
-                        minIndexToNextCheckPoint = i;
+                    if(students.size() != 0) {
+                        for (int j = 0; j< students.size(); j++) {
+                            if (students.get(j).getId() == route.getPersonIds().get(i)) {
+                                minDistanceToNextCheckPoint = haverSineDistance(busLatitude, busLongitude, routeLatitudes.get(i), routeLongitudes.get(i));
+                                minIndexToNextCheckPoint = i;
+                                i = routeLatitudes.size();
+                                j = students.size();
+                            }
+                        }
+                    }
+                    else {
+                        minDistanceToNextCheckPoint = haverSineDistance(busLatitude, busLongitude, routeLatitudes.get(routeLatitudes.size()-1), routeLongitudes.get(routeLatitudes.size()-1));
+                        minIndexToNextCheckPoint = routeLatitudes.size()-1;
+                        i = routeLatitudes.size();
                     }
                 }
             }
