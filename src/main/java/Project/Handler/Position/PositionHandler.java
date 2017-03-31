@@ -339,7 +339,6 @@ public class PositionHandler {
         }else{
             while (itr.hasNext()) {
                 Student stu = itr.next();
-
                 if (stu.getInBus() != IsInBus.NO) {
                     itr.remove();
                 }
@@ -347,15 +346,30 @@ public class PositionHandler {
         }
         double sumOfDistance;
         if(!route.getTemporary().get(index).equals("YES")) {
-            for (int i = 0; i < routeLatitudes.size(); i++) {
+            for (int i = 0; i <= index; i++) {
                 if(!route.getActive().get(i).equals("ABSENT")) {
                     if(students.size() != 0) {
                         for (int j = 0; j< students.size(); j++) {
                             if (students.get(j).getId() == route.getPersonIds().get(i)) {
-                                minDistanceToNextCheckPoint = haverSineDistance(busLatitude, busLongitude, routeLatitudes.get(i), routeLongitudes.get(i));
+                                //minDistanceToNextCheckPoint = haverSineDistance(busLatitude, busLongitude, routeLatitudes.get(i), routeLongitudes.get(i));
                                 minIndexToNextCheckPoint = i;
                                 i = routeLatitudes.size();
                                 j = students.size();
+                                int previousStudentHomeIndex = getPreviousStudentHomeIndex(minIndexToNextCheckPoint, route);
+
+                                double min = 0;
+                                double dist;
+                                int minIndex = -1;
+                                for(int k = previousStudentHomeIndex; k<= minIndexToNextCheckPoint; k++){
+                                    dist = haverSineDistance(busLatitude, busLongitude, route.getLatitudes().get(k), route.getLongitudes().get(k));
+                                    if(dist < min || i == previousStudentHomeIndex){
+                                        min = dist;
+                                        minIndex = k;
+                                    }
+                                }
+                                minDistanceToNextCheckPoint = min;
+                                minIndexToNextCheckPoint = minIndex;
+
                             }
                         }
                     }
@@ -390,4 +404,19 @@ public class PositionHandler {
         return positionPersistent.clearTrip();
     }
 
+    public int getPreviousStudentHomeIndex(int latestIndex, Route route){
+        for(int i = latestIndex - 1; i>0; i--){
+            if(route.getActive().get(i).equals("YES")){
+                return i;
+            }
+        }
+        return latestIndex;
+    }
+    public boolean everInBus(int personId){
+        return positionPersistent.everInBus(personId);
+    }
+
+    public boolean deleteFromRoute(int personId){
+        return positionPersistent.deleteFromRoute(personId);
+    }
 }

@@ -40,4 +40,12 @@ public class ParentHandler {
     public ArrayList<Person> getAllParents(){
         return parentPersistent.getAllParents();
     }
+
+    public boolean clearFamily(int personId){
+        return parentPersistent.clearFamily(personId);
+    }
+
+    public boolean clearParent(int personId){
+        return parentPersistent.clearParent(personId);
+    }
 }

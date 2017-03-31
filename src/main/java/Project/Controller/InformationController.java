@@ -139,6 +139,26 @@ public class InformationController {
         return studentHandler.getStudentByPersonId(personId);
     }
 
+    @RequestMapping(value = "getStudentInformationWeb", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    Student getStudentWeb(
+            @RequestParam(value = "personId") int personId //personId of a student
+    ) {
+        Student s = studentHandler.getStudentByPersonId(personId);
+        s.setImage(personHandler.getPersonImage(personId));
+        return s;
+    }
+
+    @RequestMapping(value = "getPersons", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    ArrayList<Person> getPersons(
+    ) {
+        ArrayList<Person> s = personHandler.getAllPersonsExceptStudents();
+        return s;
+    }
+
     @RequestMapping(value = "getAllPassengerInformation", method = RequestMethod.POST)
     public
     @ResponseBody
@@ -209,6 +229,28 @@ public class InformationController {
     ) {
         return schoolHandler.getSchoolDetail(schoolName);
     }
+
+    @RequestMapping(value = "getPerson", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    Person getPerson(
+            @RequestParam(value = "personId") int personId
+    ) {
+        Person p = personHandler.getPersonByPersonId(personId);
+        p.setAddresses(personPersistent.getPersonAddressesByPersonId(personId));
+        p.setImage(personHandler.getPersonImage(personId));
+        return p;
+    }
+
+    @RequestMapping(value = "getStudentsByTeacherOrParent", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    ArrayList<Student> getStudentsByTeacherOrParent(
+            @RequestParam(value = "personId") int personId
+    ) {
+        return studentHandler.getAllStudentByPersonId(personId, false);
+    }
+
 
     @RequestMapping(value = "getBusDetail", method = RequestMethod.POST)
     public
@@ -330,5 +372,15 @@ public class InformationController {
     ) {
         return positionHandler.haverSineDistance(13.7292399000, 100.7757240000, 13.7292515000, 100.7754596000);
     }
+
+    @RequestMapping(value= "deletePerson", method = RequestMethod.POST)
+    public
+    @ResponseBody
+    boolean deletePerson(
+            @RequestParam(value = "personId") int personId
+    ) {
+        return personHandler.deletePersonByPersonId(personId);
+    }
+
 }
 

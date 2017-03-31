@@ -46,7 +46,7 @@ public class StudentHandler {
     }
 
     public ArrayList<Student> getAllStudentByPersonId(int personId, boolean needImage) {
-        ArrayList<Student> students = null;
+        ArrayList<Student> students = new ArrayList<>();
         if(personId != -1) {
             Role role = studentPersistent.getRoleByPersonId(personId);
             if (role != null) {
@@ -206,5 +206,17 @@ public class StudentHandler {
              result = studentPersistent.cancelStudentTrip(it) && result;
         }
         return result;
+    }
+
+    public boolean clearTeachHistory(int personId){
+        return studentPersistent.clearTeachHistory(personId);
+    }
+
+    public boolean clearFamily(int personId){
+        return studentPersistent.clearFamily(personId);
+    }
+
+    public boolean clearStudent(int personId){
+        return studentPersistent.clearStudent(personId);
     }
 }

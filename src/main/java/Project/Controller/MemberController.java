@@ -57,12 +57,11 @@ public class MemberController {
             @RequestParam(value = "name") String name,
             @RequestParam(value = "surname") String surname,
             @RequestParam(value = "tel") String tel,
-            @RequestParam(value = "latitudes", required = false) ArrayList<Double> latitudes,
-            @RequestParam(value = "longitudes", required = false) ArrayList<Double> longitudes,
-            @RequestParam(value = "details", required = false) ArrayList<String> details,
-            @RequestParam(value = "image", required = false) String image
+            @RequestParam(value = "details") ArrayList<String> details,
+            @RequestParam(value = "image") String image
             ) {
-        boolean result = memberHandler.signUp(username, password, name, surname, role, tel, latitudes, longitudes, details, image);
+        boolean result = memberHandler.signUp(username, password, name, surname, role, tel, details, image);
+        System.out.println(result);
         return result;
     }
 
@@ -92,19 +91,18 @@ public class MemberController {
     public
     @ResponseBody
         // return type and param list and body not yet finished
-    boolean logIn
+    boolean addStudent
     (
             @RequestParam(value = "name") String name,
             @RequestParam(value = "surname") String surname,
             @RequestParam(value = "tel") String tel,
             @RequestParam(value = "studentId") String studentId,
             @RequestParam(value = "typeOfService") TypeOfService typeOfService,
-            @RequestParam(value = "latitudes", required = false) ArrayList<Double> latitudes,
-            @RequestParam(value = "longitudes", required = false) ArrayList<Double> longitudes,
-            @RequestParam(value = "details", required = false) ArrayList<String> details,
-            @RequestParam(value=  "image", required = false) String image
+            @RequestParam(value = "details") ArrayList<String> details,
+            @RequestParam(value=  "image") String image
     ){
-
-        return memberHandler.studentSignUp(studentId, name, surname, tel, latitudes, longitudes, details, typeOfService, image);
+        boolean result =memberHandler.studentSignUp(studentId, name, surname, tel, details, typeOfService, image);
+        System.out.println(result);
+        return  result;
     }
 }

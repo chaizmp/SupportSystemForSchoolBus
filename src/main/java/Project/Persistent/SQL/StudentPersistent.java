@@ -172,6 +172,33 @@ public class StudentPersistent extends JdbcTemplate {
             return false;
         }
     }
+
+    public boolean clearTeachHistory(int personId){
+        try{
+            return update("DELETE FROM teachHistory WHERE personSId = ?", personId) >=0;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean clearStudent(int personId){
+        try{
+            return update("DELETE FROM student WHERE personId = ?", personId)>=0;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean clearFamily(int personId){
+        try{
+            return update("DELETE FROM family WHERE personSId = ?", personId) >=0;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
    /* public ArrayList<Timestamp> getCurrentStartAndEndPeriodByStudentId(String personId){
         ArrayList<Timestamp> result = new ArrayList<>();
         Timestamp atTime,start,end;

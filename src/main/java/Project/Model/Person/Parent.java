@@ -13,7 +13,7 @@ import java.util.ArrayList;
 @Data
 public class Parent extends Person {
 
-    public Parent(Role role, int id, String image, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<Address> address) {
+    public Parent(Role role, int id, String image, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<String> address) {
         super(role, id, image, token, tel, user, firstName, surName, faceBookId, address);
     }
 }

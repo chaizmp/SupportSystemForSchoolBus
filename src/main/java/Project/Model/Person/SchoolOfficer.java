@@ -12,7 +12,7 @@ import java.util.ArrayList;
  */
 @Data
 public class SchoolOfficer extends Person {
-    public SchoolOfficer(Role role, int id, String image, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<Address> address) {
+    public SchoolOfficer(Role role, int id, String image, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<String> address) {
         super(role, id, image, token, tel, user, firstName, surName, faceBookId, address);
     }
 

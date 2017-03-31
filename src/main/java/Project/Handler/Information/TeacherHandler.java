@@ -54,4 +54,12 @@ public class TeacherHandler {
     public ArrayList<Person> getAllTeachers(){
         return teacherPersistent.getAllTeachers();
     }
+
+    public boolean clearTeachHistory(int personId){
+        return teacherPersistent.clearTeachHistory(personId);
+    }
+
+    public boolean clearTeacher(int personId){
+        return teacherPersistent.clearTeacher(personId);
+    }
 }

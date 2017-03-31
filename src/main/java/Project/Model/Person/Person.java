@@ -21,9 +21,9 @@ public class Person {
     private String firstName;
     private String surName;
     private String faceBookId;
-    private ArrayList<Address> addresses;
+    private ArrayList<String> addresses;
 
-    public Person(Role role, int id, String image, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<Address> addresses) {
+    public Person(Role role, int id, String image, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<String> addresses) {
         this.role = role;
         this.id = id;
         this.image = image;

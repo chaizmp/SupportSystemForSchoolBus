@@ -32,7 +32,7 @@ public class MemberHandler {
     @Autowired
     StudentPersistent studentPersistent;
 
-    public boolean signUp(String username, String password, String name, String surname, Role role, String tel, ArrayList<Double> latitudes, ArrayList<Double> longitudes, ArrayList<String> details, String image){
+    public boolean signUp(String username, String password, String name, String surname, Role role, String tel, ArrayList<String> details, String image){
 
         byte[] salt = authenticationUtil.generateSalt();
         Base64.Encoder enc = Base64.getEncoder();
@@ -40,9 +40,7 @@ public class MemberHandler {
         int mainTableResult = personPersistent.addPerson(username, hash, enc.encodeToString(salt), name, surname, role, tel);
         //***************** get that key
         if(mainTableResult != -1){
-            if(latitudes != null) {
-                personHandler.addPersonAddressById(mainTableResult, latitudes, longitudes, details);
-            }
+                personHandler.addPersonAddressById(mainTableResult, details);
             if(image != null) {
                 personHandler.savePersonImage(image, mainTableResult);
             }
@@ -60,14 +58,12 @@ public class MemberHandler {
         return mainTableResult != -1;
     }
 
-    public boolean studentSignUp(String studentId, String name, String surname, String tel, ArrayList<Double> latitudes, ArrayList<Double> longitudes, ArrayList<String> details, TypeOfService typeOfService, String image){
+    public boolean studentSignUp(String studentId, String name, String surname, String tel, ArrayList<String> details, TypeOfService typeOfService, String image){
 
         int mainTableResult = personPersistent.addPerson(null, null, null, name, surname, Role.STUDENT, tel);
         //***************** get that key
         if(mainTableResult != -1){
-            if(latitudes != null) {
-                personHandler.addPersonAddressById(mainTableResult, latitudes, longitudes, details);
-            }
+                personHandler.addPersonAddressById(mainTableResult, details);
             if(image != null) {
                 personHandler.savePersonImage(image, mainTableResult);
             }

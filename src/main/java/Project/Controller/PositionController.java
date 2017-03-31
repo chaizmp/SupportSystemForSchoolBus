@@ -7,6 +7,7 @@ import Project.Handler.Information.StudentHandler;
 import Project.Handler.Notification.NotificationHandler;
 import Project.Handler.Position.PositionHandler;
 import Project.Model.Enumerator.IsInBus;
+import Project.Model.Enumerator.Role;
 import Project.Model.Enumerator.Status;
 import Project.Model.Enumerator.Type;
 import Project.Model.Person.Person;
@@ -106,7 +107,13 @@ public class PositionController {
                     ArrayList<Person> persons = personHandler.getPersonsRelatedToStudent(personSId);
                     double estimateTime = positionHandler.estimateTime(carId, averageVelocity, route, i, latitude, longitude);
                     for (Person person : persons) {
-                        int duration = personHandler.getPersonAlarm(student.getId());
+                        int duration;
+                        if(person.getRole() == Role.TEACHER){
+                            duration = personHandler.getTeacherAlarm(person.getId(), student.getId());
+                        }else{
+                            duration = personHandler.getParentAlarm(person.getId(), student.getId());
+                        }
+
                         if (duration != -1 && estimateTime <= duration * 60) {
                             String carNumber = busHandler.getBusCarNumberByCarId(carId);
                             notificationHandler.alarm(carNumber, person.getToken(), student.getFirstName(), student.getSurName());

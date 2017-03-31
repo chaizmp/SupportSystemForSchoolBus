@@ -56,4 +56,22 @@ public class ParentPersistent extends JdbcTemplate {
             return new ArrayList<>();
         }
     }
+
+    public boolean clearParent(int personId){
+        try{
+            return update("DELETE FROM parent WHERE personId = ?", personId)>=0;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean clearFamily(int personId){
+        try{
+            return update("DELETE FROM family WHERE personPId = ?", personId) >=0;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

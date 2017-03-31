@@ -18,7 +18,7 @@ public class Student extends Person {
     private String studentId;
     private IsInBus inBus = IsInBus.NO;
 
-    public Student(Role role, int id, String image, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<Address> address, TypeOfService typeOfService, String studentId) {
+    public Student(Role role, int id, String image, String token, String tel, String user, String firstName, String surName, String faceBookId, ArrayList<String> address, TypeOfService typeOfService, String studentId) {
         super(role, id, image, token, tel, user, firstName, surName, faceBookId, address);
         this.typeOfService = typeOfService;
         this.studentId = studentId;

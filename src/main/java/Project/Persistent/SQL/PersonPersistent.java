@@ -27,9 +27,8 @@ public class PersonPersistent extends JdbcTemplate {
         this.setDataSource(mainDataSource);
     }
 
-    public ArrayList<Address> getPersonAddressesByPersonId(int personId) {
-        List<Address> addressList = query("SELECT * FROM PersonAddress,AddressDetail WHERE PersonAddress.latitude = AddressDetail.latitude " +
-                "and PersonAddress.longitude = AddressDetail.longitude and PersonAddress.personId = ?", new AddressMapper(), personId);
+    public ArrayList<String> getPersonAddressesByPersonId(int personId) {
+        List<String> addressList = queryForList("SELECT detail FROM PersonAddress WHERE personId = ?", String.class, personId);
         return new ArrayList<>(addressList);
     }
 
@@ -92,18 +91,9 @@ public class PersonPersistent extends JdbcTemplate {
         }
     }
 
-    public boolean addPersonAddressByPersonId(int personId, double latitude, double longitude){
+    public boolean addAddressDetail(int personId, String detail){
         try{
-            return update("INSERT INTO personAddress(personId, latitude, longitude) VALUES(?, ?, ?)", personId, latitude, longitude) == 1;
-        } catch (Exception e){
-            e.printStackTrace();
-            return false;
-        }
-    }
-
-    public boolean addAddressDetail(double latitude, double longitude, String detail){
-        try{
-            return update("INSERT INTO addressDetail(latitude, longitude, detail) VALUES(?, ?, ?)", latitude, longitude, detail) == 1;
+            return update("INSERT INTO personAddress(personId, detail) VALUES(?, ?)", personId, detail) == 1;
         }catch(Exception e){
             e.printStackTrace();
             return false;
@@ -120,8 +110,12 @@ public class PersonPersistent extends JdbcTemplate {
         }
     }
 
-    public int getPersonAlarm(int personId){
-        return queryForObject("SELECT alarm FROM person WHERE personId = ?", Integer.class, personId);
+    public int getParentAlarm(int personPId, int personSId){
+        return queryForObject("SELECT alarm FROM family WHERE personPId = ? AND personSId = ? ", Integer.class, personPId, personSId);
+    }
+
+    public int getTeacherAlarm(int personTId, int personSId){
+        return queryForObject("SELECT alarm FROM teachHistory WHERE personTId = ? AND personSId = ?", Integer.class, personTId, personSId);
     }
 
     public String getRoleByUsername(String username){
@@ -132,4 +126,30 @@ public class PersonPersistent extends JdbcTemplate {
         return queryForObject("SELECT personId from person WHERE username = ?", Integer.class, username);
     }
 
+    public ArrayList<Person> getAllPersonsExceptStudents(){
+        try {
+            return new ArrayList<>(query("SELECT * from person WHERE role != 'STUDENT' AND role != 'SCHOOLOFFICER' ORDER BY ROLE DESC", new PersonMapper()));
+        }catch(Exception e){
+            e.printStackTrace();
+            return new ArrayList<>();
+        }
+    }
+
+    public boolean deleteAddresses(int personId){
+        try{
+            return update("DELETE FROM personAddress WHERE personId = ?",personId)>=0;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deletePerson(int personId){
+        try{
+            return update("DELETE FROM person WHERE personId = ?", personId) >= 0;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

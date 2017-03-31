@@ -88,4 +88,21 @@ public class TeacherPersistent extends JdbcTemplate {
             return new ArrayList<>();
         }
     }
+
+    public boolean clearTeachHistory(int personId){
+        try{
+            return update("DELETE FROM teachHistory WHERE personTId = ?", personId) >=0;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+    public boolean clearTeacher(int personId){
+        try{
+            return update("DELETE FROM teacher WHERE personId = ?", personId)>=0;
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
 }

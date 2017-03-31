@@ -232,7 +232,7 @@ public class PositionPersistent extends JdbcTemplate {
         }
     }
 
-    public boolean isFirstPerson(int carId, Timestamp now, Timestamp lunch, Timestamp midNight) {
+    public boolean  isFirstPerson(int carId, Timestamp now, Timestamp lunch, Timestamp midNight) {
         if (now.getTime() <= lunch.getTime()) {
             return !queryForRowSet("SELECT * FROM personinbus WHERE STATUS = ? AND carId = ? AND atTime <= ? AND atTime >= ? ", Status.START.name(), carId, lunch, midNight).next();
         } else {
@@ -354,6 +354,25 @@ public class PositionPersistent extends JdbcTemplate {
             result4 = update("UPDATE bus SET averageVelocity = 0 , checkPointPassed = 0 ") >= 1;
             return result1 && result2 && result3 && result4;
         }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean everInBus(int personId){
+        try {
+            return queryForRowSet("SELECT * FROM personInBus WHERE personId = ?", personId).next();
+        }catch(Exception e){
+            e.printStackTrace();
+            return false;
+        }
+    }
+
+    public boolean deleteFromRoute(int personId){
+        try{
+            return update("DELETE FROM routePosition WHERE personId = ?", personId)>=0;
+        }catch(Exception e)
+        {
             e.printStackTrace();
             return false;
         }
