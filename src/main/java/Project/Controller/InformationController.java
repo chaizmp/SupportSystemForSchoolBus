@@ -369,8 +369,15 @@ public class InformationController {
     public
     @ResponseBody
     double testVelo(
+            @RequestParam(value = "time1") Timestamp time1,
+            @RequestParam(value = "time2") Timestamp time2,
+            @RequestParam(value = "lat1") double lat1,
+            @RequestParam(value = "lon1") double lon1,
+            @RequestParam(value = "lat2") double lat2,
+            @RequestParam(value = "lon2") double lon2
     ) {
-        return positionHandler.haverSineDistance(13.7292399000, 100.7757240000, 13.7292515000, 100.7754596000);
+        return positionHandler.haverSineDistance(lat1,lon1,lat2,lon2)/((time2.getTime() - time1.getTime())/1000);
+
     }
 
     @RequestMapping(value= "deletePerson", method = RequestMethod.POST)

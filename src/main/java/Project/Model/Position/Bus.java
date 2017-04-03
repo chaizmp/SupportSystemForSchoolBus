@@ -14,6 +14,8 @@ public class Bus {
     private double currentLatitude;
     private double currentLongitude;
     private Route currentRoute;
+    private String frontImage;
+    private String backImage;
 
 
     public Bus(int carId, String carNumber, double avgVelocity, int checkPointPassed, double currentLatitude, double currentLongitude, Route currentRoute) {

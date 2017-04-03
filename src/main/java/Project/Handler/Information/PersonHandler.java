@@ -57,8 +57,8 @@ public class PersonHandler {
         return personPersistent.getPersonByPersonId(personId);
     }
 
-    public boolean setAlarm(int personId, int duration) {
-        return personPersistent.setAlarm(personId, duration);
+    public boolean setAlarm(int personPId, int personSId, int duration) {
+        return personPersistent.setAlarm(personPId, personSId, duration);
     }
 
     public int getTeacherAlarm(int personTId, int personSId) {
@@ -144,6 +144,7 @@ public class PersonHandler {
                     break;
             }
             personPersistent.deletePerson(personId);
+            return true;
         }
             return false;
     }

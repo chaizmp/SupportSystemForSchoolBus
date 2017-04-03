@@ -17,6 +17,7 @@ import Project.Model.Position.Position;
 import Project.Model.Position.Route;
 import Project.Model.School;
 import Project.Persistent.SQL.PositionPersistent;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.support.rowset.SqlRowSet;
 import org.springframework.stereotype.Service;
@@ -261,16 +262,16 @@ public class PositionHandler {
         return studentNumber - 1 == studentNotInCarId;
     }
 
-    public double setVelocity(int carId, double previousLatitude, double previousLongitude, double newLatitude, double newLongitude) {
+    public double setVelocity(int carId, double previousLatitude, double previousLongitude, long previousTimestamp, double newLatitude, double newLongitude, long newTimestamp) {
         double oldAverageVelocity = busHandler.getAverageVelocity(carId);
         int checkPointPassed = busHandler.getCheckPointPassed(carId)+1;
-        double averageVelocity = getAverageVelocity(oldAverageVelocity,checkPointPassed, previousLatitude, previousLongitude, newLatitude, newLongitude);
+        double averageVelocity = getAverageVelocity(oldAverageVelocity,checkPointPassed, previousLatitude, previousLongitude, previousTimestamp, newLatitude, newLongitude, newTimestamp);
         busHandler.setVelocityAndCheckPointPassed(carId, averageVelocity, checkPointPassed);
         return averageVelocity;
     }
 
-    public double getAverageVelocity(double oldAverageVelocity, int checkPointPassed, double previousLatitude, double previousLongitude, double newLatitude, double newLongitude){
-        return (oldAverageVelocity*(checkPointPassed-1)+haverSineDistance(previousLatitude, previousLongitude, newLatitude, newLongitude))/checkPointPassed;
+    public double getAverageVelocity(double oldAverageVelocity, int checkPointPassed, double previousLatitude, double previousLongitude, long previousTimestamp, double newLatitude, double newLongitude, long newTimestamp){
+        return (oldAverageVelocity*(checkPointPassed-1)+(haverSineDistance(previousLatitude, previousLongitude, newLatitude, newLongitude)/((newTimestamp-previousTimestamp)/1000)))/checkPointPassed;
     }
 
     public double haverSineDistance(double previousLatitude, double previousLongitude, double currentLatitude, double currentLongitude){
@@ -319,7 +320,7 @@ public class PositionHandler {
         }
     }
     //refactor after paper submission
-    public double estimateTime(int carId, double velocity, Route route, int index, double busLatitude, double busLongitude){
+    public String estimateTime(int carId, double velocity, Route route, int index, double busLatitude, double busLongitude){
         ArrayList<Double> routeLatitudes = route.getLatitudes();
         ArrayList<Double> routeLongitudes = route.getLongitudes();
         double minDistanceToNextCheckPoint = 9999999;
@@ -362,7 +363,7 @@ public class PositionHandler {
                                 int minIndex = -1;
                                 for(int k = previousStudentHomeIndex; k<= minIndexToNextCheckPoint; k++){
                                     dist = haverSineDistance(busLatitude, busLongitude, route.getLatitudes().get(k), route.getLongitudes().get(k));
-                                    if(dist < min || i == previousStudentHomeIndex){
+                                    if(dist < min || k == previousStudentHomeIndex){
                                         min = dist;
                                         minIndex = k;
                                     }
@@ -393,10 +394,19 @@ public class PositionHandler {
                     sumOfDistance += haverSineDistance(routeLatitudes.get(i), routeLongitudes.get(i), routeLatitudes.get(i + 1), routeLongitudes.get(i + 1));
                 }
             }
-            return sumOfDistance / velocity;
+            JSONObject result = new JSONObject();
+            result.put("time", sumOfDistance/velocity);
+            result.put("distance", sumOfDistance);
+            ///return sumOfDistance / velocity;
+            return result.toString();
         }
         else{
-            return haverSineDistance(busLatitude, busLongitude, route.getLatitudes().get(index), route.getLongitudes().get(index)) / velocity;
+            JSONObject result = new JSONObject();
+            double dist = haverSineDistance(busLatitude, busLongitude, route.getLatitudes().get(index), route.getLongitudes().get(index));
+            result.put("time", dist/velocity);
+            result.put("distance", dist);
+            return result.toString();
+            //return haverSineDistance(busLatitude, busLongitude, route.getLatitudes().get(index), route.getLongitudes().get(index)) / velocity;
         }
     }
 
@@ -418,5 +428,17 @@ public class PositionHandler {
 
     public boolean deleteFromRoute(int personId){
         return positionPersistent.deleteFromRoute(personId);
+    }
+
+    public double calculateAverageVelocity(int carId){
+        ArrayList<JSONObject> busPositions = positionPersistent.getAllBusPositions(carId);
+        int i;
+        double sumOfVelocity = 0;
+        for(i = 0; i<busPositions.size()-1;i++ ){
+            sumOfVelocity += haverSineDistance(busPositions.get(i).getDouble("latitude"),
+                    busPositions.get(i).getDouble("longitude"), busPositions.get(i+1).getDouble("latitude"),
+                    busPositions.get(i+1).getDouble("longitude"))/((busPositions.get(i+1).getLong("time")-busPositions.get(i).getLong("time"))/1000);
+        }
+        return sumOfVelocity/i;
     }
 }

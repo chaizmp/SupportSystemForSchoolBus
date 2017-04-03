@@ -199,6 +199,23 @@ public class StudentPersistent extends JdbcTemplate {
             return false;
         }
     }
+
+    public void setNearHome(int personId, String nearHome){
+        try{
+            update("UPDATE student SET nearHome = ? WHERE personId = ?", nearHome, personId);
+        }catch (Exception e){
+            e.printStackTrace();
+        }
+    }
+
+    public String getNearHome(int personId){
+        try{
+            return queryForObject("SELECT nearHome from student WHERE personId = ?", String.class, personId);
+        }catch(Exception e){
+            e.printStackTrace();
+            return "NO";
+        }
+    }
    /* public ArrayList<Timestamp> getCurrentStartAndEndPeriodByStudentId(String personId){
         ArrayList<Timestamp> result = new ArrayList<>();
         Timestamp atTime,start,end;

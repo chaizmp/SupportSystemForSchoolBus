@@ -4,6 +4,7 @@ import Project.Mapper.PositionMapper;
 import Project.Model.Enumerator.*;
 import Project.Model.Position.Position;
 import Project.Model.Position.Route;
+import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.support.GeneratedKeyHolder;
@@ -376,5 +377,24 @@ public class PositionPersistent extends JdbcTemplate {
             e.printStackTrace();
             return false;
         }
+    }
+
+    public ArrayList<JSONObject> getAllBusPositions(int carId){
+        ArrayList<JSONObject> result = new ArrayList<>();
+        SqlRowSet rs;
+        try{
+            rs = queryForRowSet("SELECT * from busPosition WHERE carId = ? ORDER BY positionId ASC", carId);
+        }catch(Exception e){
+            e.printStackTrace();
+            return null;
+        }
+        while(rs.next()){
+            JSONObject obj = new JSONObject();
+            obj.put("latitude", rs.getDouble("latitude"));
+            obj.put("longitude", rs.getDouble("longitude"));
+            obj.put("time", rs.getTimestamp("atTime").getTime());
+            result.add(obj);
+        }
+        return result;
     }
 }

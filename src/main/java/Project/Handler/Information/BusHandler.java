@@ -111,5 +111,9 @@ public class BusHandler {
         }
 
     }
+
+    public long getCurrentTimeStamp(int carId){
+        return busPersistent.getCurrentTimeStamp(carId);
+    }
 }
 

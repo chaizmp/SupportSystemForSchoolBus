@@ -53,11 +53,12 @@ public class NotificationController {
     @RequestMapping( value ="setAlarm", method = RequestMethod.POST)
     public @ResponseBody
     boolean setAlarm(
-            @RequestParam(value="personId") int personId,
+            @RequestParam(value="personPId") int personPId,
+            @RequestParam(value="personSId") int personSId,
             @RequestParam(value="duration") int duration
     ){
 
-        return personHandler.setAlarm(personId, duration);
+        return personHandler.setAlarm(personPId, personSId, duration);
     }
 
 }

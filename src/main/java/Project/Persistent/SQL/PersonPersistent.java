@@ -100,9 +100,9 @@ public class PersonPersistent extends JdbcTemplate {
         }
     }
 
-    public boolean setAlarm(int personId, int duration){
+    public boolean setAlarm(int personPId, int personSId,  int duration){
         try{
-            return update("UPDATE person SET alarm = ? WHERE personId = ?", duration, personId) == 1;
+            return update("UPDATE family SET alarm = ? WHERE personPId = ? AND personSId = ?", duration, personPId, personSId) == 1;
         }catch (Exception e)
         {
             e.printStackTrace();

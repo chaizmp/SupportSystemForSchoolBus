@@ -219,4 +219,11 @@ public class StudentHandler {
     public boolean clearStudent(int personId){
         return studentPersistent.clearStudent(personId);
     }
+
+    public void setNearHome(int personId, String nearHome){
+        studentPersistent.setNearHome(personId, nearHome);
+    }
+    public String getNearHome(int personId){
+        return studentPersistent.getNearHome(personId);
+    }
 }

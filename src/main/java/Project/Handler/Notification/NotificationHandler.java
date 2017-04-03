@@ -34,7 +34,8 @@ public class NotificationHandler {
         notificationMessage.setNotification(notificationForm);
         for (Person it : userRelatedToStudent) {
             notificationMessage.setTo(it.getToken());
-            responseList.add(apiCall.sendGetOnOrOffNotificationToPersons(notificationMessage));
+            apiCall.sendGetOnOrOffNotificationToPersons(notificationMessage);
+            //responseList.add();
         }
         return responseList;
     }
@@ -50,7 +51,8 @@ public class NotificationHandler {
             ArrayList<Person> userRelatedToStudent = personHandler.getPersonsRelatedToStudent(personId); // there will be pending db
             for (Person it : userRelatedToStudent) {
                 notificationMessage.setTo(it.getToken());
-                responseList.add(apiCall.sendGetOnOrOffNotificationToPersons(notificationMessage));
+                apiCall.sendGetOnOrOffNotificationToPersons(notificationMessage);
+                //responseList.add();
             }
         }
         return responseList;
@@ -65,8 +67,9 @@ public class NotificationHandler {
             notificationForm.setBody(carNumber + ": your child(" + firstName + " " + surname + ") took will arrive at home in few minutes");
             notificationMessage.setNotification(notificationForm);
             notificationMessage.setTo(token);
-            responseList.add(apiCall.sendGetOnOrOffNotificationToPersons(notificationMessage));
-            return responseList;
+            apiCall.sendGetOnOrOffNotificationToPersons(notificationMessage);
+            //responseList.add();
+            //return responseList;
         }
         return null;
     }

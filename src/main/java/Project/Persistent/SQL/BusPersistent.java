@@ -103,4 +103,13 @@ public class BusPersistent extends JdbcTemplate {
             return  null;
         }
     }
+
+    public long getCurrentTimeStamp(int carId){
+        try{
+            return queryForObject("SELECT MAX(DISTINCT(atTime)) from busPosition WHERE carId = ?", Timestamp.class, carId).getTime();
+        }catch(Exception e){
+            e.printStackTrace();
+            return -1;
+        }
+    }
 }

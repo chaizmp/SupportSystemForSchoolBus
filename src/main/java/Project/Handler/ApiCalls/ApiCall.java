@@ -52,20 +52,20 @@ public class ApiCall {
 
     }
 
-    public String sendGetOnOrOffNotificationToPersons(NotificationMessage notificationMessage) {
+    public void sendGetOnOrOffNotificationToPersons(NotificationMessage notificationMessage) {
         Call<JsonObject> call = fireBaseService.sendNotification(notificationMessage);
         try {
             Response<JsonObject> response = call.execute();
             if (response.isSuccessful()) {
                 System.out.println(response.body().toString());
-                return response.body().toString();
+               // return response.body().toString();
             } else {
                 System.out.println(response.errorBody().string());
             }
         } catch (IOException e) {
             System.out.println(e.getLocalizedMessage());
         }
-        return null;
+        //return null;
     }
 
     public boolean homeArrivalNotification() {

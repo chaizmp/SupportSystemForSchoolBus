@@ -1,17 +1,19 @@
 package Project.Controller;
 
-import Project.Handler.Information.BusHandler;
-import Project.Handler.Information.PersonHandler;
-import Project.Handler.Information.SchoolHandler;
-import Project.Handler.Information.StudentHandler;
+import Project.Handler.ApiCalls.ApiCall;
+import Project.Handler.Information.*;
 import Project.Handler.Notification.NotificationHandler;
 import Project.Handler.Position.PositionHandler;
 import Project.Model.Enumerator.IsInBus;
 import Project.Model.Enumerator.Role;
 import Project.Model.Enumerator.Status;
 import Project.Model.Enumerator.Type;
+import Project.Model.Notification.NotificationForm;
+import Project.Model.Notification.NotificationMessage;
+import Project.Model.Person.Driver;
 import Project.Model.Person.Person;
 import Project.Model.Person.Student;
+import Project.Model.Person.Teacher;
 import Project.Model.Position.Bus;
 import Project.Model.Position.Position;
 import Project.Model.Position.Route;
@@ -45,6 +47,13 @@ public class PositionController {
     NotificationHandler notificationHandler;
     @Autowired
     SchoolHandler schoolHandler;
+    @Autowired
+    ApiCall apiCall;
+    @Autowired
+    DriverHandler driverHandler;
+    @Autowired
+    TeacherHandler teacherHandler;
+
 
     @RequestMapping(value = "getBusCurrentPosition", method = RequestMethod.POST)
     public
@@ -93,8 +102,12 @@ public class PositionController {
                             @RequestParam(value = "timestamp") long timestamp
     ) {
         Bus bus = busHandler.getCurrentBusPosition(carId);
+        long previousTimestamp = busHandler.getCurrentTimeStamp(carId);
         boolean result = positionHandler.addBusPosition(carId, latitude, longitude, status, new Timestamp(timestamp));
-        double averageVelocity = positionHandler.setVelocity(carId, bus.getCurrentLatitude(), bus.getCurrentLongitude(), latitude, longitude);
+        double averageVelocity = positionHandler.setVelocity(carId, bus.getCurrentLatitude(), bus.getCurrentLongitude(), previousTimestamp, latitude, longitude, timestamp);
+        System.out.println("Velocity : "+positionHandler.haverSineDistance(bus.getCurrentLatitude(),bus.getCurrentLongitude(),latitude,longitude)/((timestamp - previousTimestamp)/1000));
+        System.out.println("Old Avg Velocity : "+averageVelocity);
+        System.out.println("New Avg Velocity : "+positionHandler.calculateAverageVelocity(carId));
         Route route = busHandler.getBusRoutinelyUsedRoute(carId);
         if(route.getLatitudes().size() == 0) {
             for (int i = 0; i < route.getLatitudes().size(); i++) {
@@ -102,10 +115,14 @@ public class PositionController {
                 //ArrayList<Address> addresses = student.getAddresses();
                 //Address address = addresses.get(0);
                 if (route.getActive().get(i).equals("YES")) {
+                    double homeLat = route.getLongitudes().get(i);
+                    double homeLng = route.getLatitudes().get(i);
+                    double dist = positionHandler.haverSineDistance(homeLat, homeLng, latitude, longitude);
                     int personSId = route.getPersonIds().get(i);
                     Student student = studentHandler.getStudentByPersonId(personSId);
+
                     ArrayList<Person> persons = personHandler.getPersonsRelatedToStudent(personSId);
-                    double estimateTime = positionHandler.estimateTime(carId, averageVelocity, route, i, latitude, longitude);
+                    JSONObject estimateTime = new JSONObject(positionHandler.estimateTime(carId, averageVelocity, route, i, latitude, longitude));
                     for (Person person : persons) {
                         int duration;
                         if(person.getRole() == Role.TEACHER){
@@ -113,8 +130,27 @@ public class PositionController {
                         }else{
                             duration = personHandler.getParentAlarm(person.getId(), student.getId());
                         }
+                        if(dist <= 100){
+                            studentHandler.setNearHome(personSId, "YES");
+                        }
+                        if(dist >= 200 && studentHandler.getNearHome(personSId).equals("YES")){
+                            studentHandler.setNearHome(personSId, "NO");
+                            NotificationMessage notificationMessage = new NotificationMessage();
+                            notificationMessage.setTo(person.getToken());
+                            NotificationForm notificationForm = new NotificationForm();
+                            notificationForm.setTitle(student.getFirstName()+"is still in bus");
+                            Driver driver = driverHandler.getLatestDriverInBusByCarId(carId);
+                            String body = "Please contact "+driver.getFirstName()+" (driver) "+driver.getTel();
+                            ArrayList<Teacher> teacher = teacherHandler.getCurrentAllTeacherByCarId(carId);
+                            for(Teacher it: teacher){
+                                body +="\n"+it.getFirstName()+"(teacher) "+it.getTel();
+                            }
+                            notificationForm.setBody(body);
+                            notificationMessage.setNotification(notificationForm);
+                            apiCall.sendGetOnOrOffNotificationToPersons(notificationMessage);
 
-                        if (duration != -1 && estimateTime <= duration * 60) {
+                        }
+                        if (duration != -1 && estimateTime.getDouble("time") <= duration * 60) {
                             String carNumber = busHandler.getBusCarNumberByCarId(carId);
                             notificationHandler.alarm(carNumber, person.getToken(), student.getFirstName(), student.getSurName());
                         }
@@ -160,7 +196,7 @@ public class PositionController {
         if(dist >= 100){
             isInBus = IsInBus.TEMP;
         }
-        result.put("isInBus",positionHandler.getOnOrOffBus(carId, personId, latitude, longitude, isStudent, isInBus));
+        result.put("inBus",positionHandler.getOnOrOffBus(carId, personId, latitude, longitude, isStudent, isInBus));
         //
         result.put("personId", personId);
         Person person = personHandler.getPersonByPersonId(personId);
@@ -222,6 +258,8 @@ public class PositionController {
         ArrayList<Bus> buses = positionHandler.getAllCurrentBusPosition();
         for(Bus it: buses){
             it.setCarNumber(busHandler.getBusCarNumberByCarId(it.getCarId()));
+            it.setFrontImage(busHandler.getImageFromBus(it.getCarId(),true));
+            it.setBackImage(busHandler.getImageFromBus(it.getCarId(),false));
         }
         return buses;
     }
@@ -239,20 +277,27 @@ public class PositionController {
     @RequestMapping(value = "estimateTime", method = RequestMethod.POST)
     public
     @ResponseBody
-    double estimateTime(
+    String estimateTime(
             @RequestParam(value = "personId") int personId
     ) {
+
         Bus checkBus = busHandler.getCurrentBusCarIdByStudentId(personId);
         if(checkBus != null) {
             int carId = checkBus.getCarId();
             Route route = busHandler.getBusRoutinelyUsedRoute(carId);
             if(route.getLatitudes().size() == 0){
-                return -1;
+                JSONObject result = new JSONObject();
+                result.put("time", "-1");
+                result.put("distance", "-1");
+                return result.toString();
             }
             Bus bus = busHandler.getCurrentBusPosition(carId);
             double velocity = busHandler.getAverageVelocity(carId);
             if (velocity == 0) {
-                return -1;
+                JSONObject result = new JSONObject();
+                result.put("time", "-1");
+                result.put("distance", "-1");
+                return result.toString();
             }
             double currentLatitude = bus.getCurrentLatitude();
             double currentLongitude = bus.getCurrentLongitude();
@@ -269,6 +314,11 @@ public class PositionController {
             }
             return positionHandler.estimateTime(carId, velocity, route, index, currentLatitude, currentLongitude);
         }
-        return -1;
+        JSONObject result = new JSONObject();
+        result.put("time", "-1");
+        result.put("distance", "-1");
+        return result.toString();
     }
+
+
 }
