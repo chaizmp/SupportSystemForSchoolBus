@@ -345,6 +345,9 @@ public class PositionHandler {
                 }
             }
         }
+        for(Student it: students){
+            System.out.println(it.getFirstName());
+        }
         double sumOfDistance;
         if(!route.getTemporary().get(index).equals("YES")) {
             for (int i = 0; i <= index; i++) {
@@ -375,8 +378,36 @@ public class PositionHandler {
                         }
                     }
                     else {
-                        minDistanceToNextCheckPoint = haverSineDistance(busLatitude, busLongitude, routeLatitudes.get(routeLatitudes.size()-1), routeLongitudes.get(routeLatitudes.size()-1));
-                        minIndexToNextCheckPoint = routeLatitudes.size()-1;
+//                        int z;
+//                        for(z = route.getActive().size(); z>=0;z--){
+//
+//                            if(route.getActive().get(z).equals("YES")){
+//                                minIndexToNextCheckPoint = z;
+//                                z = -2;
+//                            }
+//                        }
+//                        if(z == -1){
+//                            minIndexToNextCheckPoint = 0;
+//                        }
+
+                        int previousStudentHomeIndex = getPreviousStudentHomeIndex(index, route);
+
+                        double min = 0;
+                        double dist;
+                        int minIndex = -1;
+                        for(int k = previousStudentHomeIndex; k<= minIndexToNextCheckPoint; k++){
+                            dist = haverSineDistance(busLatitude, busLongitude, route.getLatitudes().get(k), route.getLongitudes().get(k));
+                            if(dist < min || k == previousStudentHomeIndex){
+                                min = dist;
+                                minIndex = k;
+                            }
+                        }
+                        minDistanceToNextCheckPoint = min;
+                        minIndexToNextCheckPoint = minIndex;
+
+
+                        //minDistanceToNextCheckPoint = haverSineDistance(busLatitude, busLongitude, routeLatitudes.get(routeLatitudes.size()-1), routeLongitudes.get(routeLatitudes.size()-1));
+                        //minIndexToNextCheckPoint = routeLatitudes.size()-1;
                         i = routeLatitudes.size();
                     }
                 }
@@ -388,6 +419,7 @@ public class PositionHandler {
                 start = index;
                 end = minIndexToNextCheckPoint;
             }
+            System.out.println("Route Index :"+minIndexToNextCheckPoint);
             sumOfDistance = minDistanceToNextCheckPoint;
             for (int i = start; i < end; i++) {
                 if(!route.getActive().get(i).equals("ABSENT")) {
@@ -420,7 +452,8 @@ public class PositionHandler {
                 return i;
             }
         }
-        return latestIndex;
+        return 0;
+        //return latestIndex;
     }
     public boolean everInBus(int personId){
         return positionPersistent.everInBus(personId);
