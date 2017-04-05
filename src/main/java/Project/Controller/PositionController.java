@@ -153,6 +153,8 @@ public class PositionController {
                         if (duration != -1 && estimateTime.getDouble("time") <= duration * 60) {
                             String carNumber = busHandler.getBusCarNumberByCarId(carId);
                             notificationHandler.alarm(carNumber, person.getToken(), student.getFirstName(), student.getSurName());
+                            personHandler.setAlarm(person.getId(), student.getId(), -1);
+                            //set alarm here
                         }
                     }
                 }
