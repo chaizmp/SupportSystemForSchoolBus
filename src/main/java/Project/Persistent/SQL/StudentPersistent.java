@@ -105,9 +105,9 @@ public class StudentPersistent extends JdbcTemplate {
     public ArrayList<Student> getCurrentAllStudentByCarId(int carId) {
         List<Student> studentList = query("SELECT * FROM person,student WHERE person.personId = student.personId AND student.personId IN " +
                 "( SELECT personId from personInBus P1 WHERE carId = ? AND atTime >= " +
-                "( SELECT MAX(atTime) FROM personInBus WHERE carId = ? AND status = 'START' " +
+                "( SELECT MAX(DISTINCT atTime) FROM personInBus WHERE carId = ? AND status = 'START' " +
                 ") AND isInBus = 'YES' AND atTime =  " +
-                "(SELECT MAX(atTime) FROM personInBus P2 WHERE P1.personId = P2.personId AND carId = ?)" +
+                "(SELECT MAX(DISTINCT atTime) FROM personInBus P2 WHERE P1.personId = P2.personId AND carId = ?)" +
                 ")", new StudentMapper(), carId, carId, carId);
         return new ArrayList<>(studentList);
     }

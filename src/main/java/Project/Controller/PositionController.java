@@ -138,9 +138,9 @@ public class PositionController {
                             NotificationMessage notificationMessage = new NotificationMessage();
                             notificationMessage.setTo(person.getToken());
                             NotificationForm notificationForm = new NotificationForm();
-                            notificationForm.setTitle(student.getFirstName()+"is still in bus");
+                            notificationForm.setTitle("Danger Alert");
                             Driver driver = driverHandler.getLatestDriverInBusByCarId(carId);
-                            String body = "Please contact "+driver.getFirstName()+" (driver) "+driver.getTel();
+                            String body = "Your student: "+student.getFirstName()+" is still on the bus.\nPlease contact "+driver.getFirstName()+" (driver) "+driver.getTel();
                             ArrayList<Teacher> teacher = teacherHandler.getCurrentAllTeacherByCarId(carId);
                             for(Teacher it: teacher){
                                 body +="\n"+it.getFirstName()+"(teacher) "+it.getTel();

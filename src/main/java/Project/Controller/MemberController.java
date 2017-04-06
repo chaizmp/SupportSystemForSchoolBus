@@ -84,7 +84,7 @@ public class MemberController {
             JSONObject resultJSON = objectToJSON.mergeJSONObjects(personId,role);
             return resultJSON.toString();
         }
-        return null;
+        return "Incorrect Username or Password";
     }
 
     @RequestMapping(value = "addStudent", method = RequestMethod.POST)

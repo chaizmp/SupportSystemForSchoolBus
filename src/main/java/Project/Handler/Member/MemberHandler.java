@@ -76,6 +76,9 @@ public class MemberHandler {
         String salt = personPersistent.getSalt(username);
 //        Base64.Encoder enc = Base64.getEncoder();
         Base64.Decoder dec = Base64.getDecoder();
+        if(salt == null){
+            return false;
+        }
         String newHash = authenticationUtil.hash(password, dec.decode(salt));
         String trueHash = personPersistent.getPassword(username);
         return newHash.equals(trueHash);

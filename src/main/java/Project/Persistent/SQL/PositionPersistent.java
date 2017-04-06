@@ -347,13 +347,17 @@ public class PositionPersistent extends JdbcTemplate {
         boolean result2;
         boolean result3;
         boolean result4;
+        boolean result5;
+        boolean result6;
         String a = null;
         try{
             result1 = update("DELETE FROM personInBus") >= 1;
             result2 = update("DELETE FROM busPosition") >= 1;
             result3 = update("UPDATE student SET carId = ?", a) >= 1;
             result4 = update("UPDATE bus SET averageVelocity = 0 , checkPointPassed = 0 ") >= 1;
-            return result1 && result2 && result3 && result4;
+            result5 = update("UPDATE family SET alarm = -1") >= 1;
+            result6 = update("UPDATE teachHistory SET alarm = -1") >= 1;
+            return result1 && result2 && result3 && result4 && result5 && result6;
         }catch(Exception e){
             e.printStackTrace();
             return false;

@@ -240,8 +240,8 @@ public class PositionHandler {
             for (Person it : userRelatedToStudent) {
                 NotificationMessage notificationMessage = new NotificationMessage();
                 NotificationForm notificationForm = new NotificationForm();
-                notificationForm.setTitle("Support System For School Bus");
-                notificationForm.setBody("Your student, " + studentName + " " + surname + " " + ", has just get " + onOrOff + "The Bus Number" + carId);
+                notificationForm.setTitle("Getting on/off");
+                notificationForm.setBody("Your student, " + studentName + " " + surname + " " + ", has just got " + onOrOff + " The Bus Number" + carId);
                 notificationMessage.setNotification(notificationForm);
                 notificationMessage.setTo(it.getToken());
                 apiCall.sendGetOnOrOffNotificationToPersons(notificationMessage);

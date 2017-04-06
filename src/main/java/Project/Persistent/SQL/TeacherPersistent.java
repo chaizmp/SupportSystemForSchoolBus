@@ -53,13 +53,18 @@ public class TeacherPersistent extends JdbcTemplate {
     }
 
     public ArrayList<Teacher> getCurrentAllTeacherByCarId(int carId) {
-        List<Teacher> teacherList = query("SELECT * FROM person,teacher WHERE person.personId = teacher.personId AND teacher.personId IN " +
-                "( SELECT personId from personInBus P1 WHERE carId = ? AND atTime >= " +
-                "( SELECT MAX(atTime) FROM personInBus WHERE carId = ? AND status = 'START' " +
-                ") AND isInBus = 'YES' AND atTime =  " +
-                "(SELECT MAX(atTime) FROM personInBus P2 WHERE P1.personId = P2.personId AND carId = ?)" +
-                ")", new TeacherMapper(), carId, carId, carId);
-        return new ArrayList<>(teacherList);
+        try {
+            List<Teacher> teacherList = query("SELECT * FROM person,teacher WHERE person.personId = teacher.personId AND teacher.personId IN " +
+                    "( SELECT personId from personInBus P1 WHERE carId = ? AND atTime >= " +
+                    "( SELECT MAX(atTime) FROM personInBus WHERE carId = ? AND status = 'START' " +
+                    ") AND isInBus = 'YES' AND atTime =  " +
+                    "(SELECT MAX(atTime) FROM personInBus P2 WHERE P1.personId = P2.personId AND carId = ?)" +
+                    ")", new TeacherMapper(), carId, carId, carId);
+            return new ArrayList<>(teacherList);
+        }catch(Exception e){
+            return new ArrayList<>();
+        }
+
     }
 
     public boolean addTeacher(int personId){
