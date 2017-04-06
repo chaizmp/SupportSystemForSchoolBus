@@ -19,6 +19,7 @@ import Project.Model.Position.Position;
 import Project.Model.Position.Route;
 import Project.Model.School;
 import Project.Persistent.SQL.PersonPersistent;
+import Project.Persistent.SQL.PositionPersistent;
 import org.json.JSONObject;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -53,6 +54,8 @@ public class PositionController {
     DriverHandler driverHandler;
     @Autowired
     TeacherHandler teacherHandler;
+    @Autowired
+    PositionPersistent positionPersistent;
 
 
     @RequestMapping(value = "getBusCurrentPosition", method = RequestMethod.POST)
@@ -107,43 +110,52 @@ public class PositionController {
         double averageVelocity = positionHandler.setVelocity(carId, bus.getCurrentLatitude(), bus.getCurrentLongitude(), previousTimestamp, latitude, longitude, timestamp);
         System.out.println("Velocity : "+positionHandler.haverSineDistance(bus.getCurrentLatitude(),bus.getCurrentLongitude(),latitude,longitude)/((timestamp - previousTimestamp)/1000));
         System.out.println("Old Avg Velocity : "+averageVelocity);
-        System.out.println("New Avg Velocity : "+positionHandler.calculateAverageVelocity(carId));
         Route route = busHandler.getBusRoutinelyUsedRoute(carId);
-        if(route.getLatitudes().size() == 0) {
+        if(route.getLatitudes().size() != 0) {
             for (int i = 0; i < route.getLatitudes().size(); i++) {
                 //student.setAddresses(personPersistent.getPersonAddressesByPersonId(student.getId()));
                 //ArrayList<Address> addresses = student.getAddresses();
                 //Address address = addresses.get(0);
                 if (route.getActive().get(i).equals("YES")) {
-                    double homeLat = route.getLongitudes().get(i);
-                    double homeLng = route.getLatitudes().get(i);
+                    if((route.getType() == Type.SCHOOL && positionPersistent.isInBus(route.getPersonIds().get(i)) != IsInBus.NO)|| (route.getType() == Type.HOME && positionPersistent.isInBus(route.getPersonIds().get(i)) != IsInBus.NO )){
+                    double homeLat = route.getLatitudes().get(i);
+                    double homeLng = route.getLongitudes().get(i);
+                    int indexTarget = i;
+                        if(route.getType() == Type.SCHOOL){
+                            homeLat = route.getLongitudes().get(route.getLatitudes().size()-1);
+                            homeLng = route.getLongitudes().get(route.getLongitudes().size()-1);
+                            indexTarget = route.getLongitudes().size()-1;
+                        }
                     double dist = positionHandler.haverSineDistance(homeLat, homeLng, latitude, longitude);
                     int personSId = route.getPersonIds().get(i);
                     Student student = studentHandler.getStudentByPersonId(personSId);
-
                     ArrayList<Person> persons = personHandler.getPersonsRelatedToStudent(personSId);
-                    JSONObject estimateTime = new JSONObject(positionHandler.estimateTime(carId, averageVelocity, route, i, latitude, longitude));
+                    JSONObject estimateTime = new JSONObject(positionHandler.estimateTime(carId, averageVelocity, route, indexTarget, latitude, longitude));
+                    System.out.println("########");
+                    System.out.println(estimateTime.toString());
                     for (Person person : persons) {
+                        System.out.println(dist);
+                        System.out.println(studentHandler.getNearHome(personSId));
                         int duration;
-                        if(person.getRole() == Role.TEACHER){
+                        if (person.getRole() == Role.TEACHER) {
                             duration = personHandler.getTeacherAlarm(person.getId(), student.getId());
-                        }else{
+                        } else {
                             duration = personHandler.getParentAlarm(person.getId(), student.getId());
                         }
-                        if(dist <= 100){
+                        if (dist <= 300 && route.getType() == Type.HOME) {
                             studentHandler.setNearHome(personSId, "YES");
                         }
-                        if(dist >= 200 && studentHandler.getNearHome(personSId).equals("YES")){
+                        if (dist >= 500 && studentHandler.getNearHome(personSId).equals("YES") && route.getType() == Type.HOME) {
                             studentHandler.setNearHome(personSId, "NO");
                             NotificationMessage notificationMessage = new NotificationMessage();
                             notificationMessage.setTo(person.getToken());
                             NotificationForm notificationForm = new NotificationForm();
                             notificationForm.setTitle("Danger Alert");
                             Driver driver = driverHandler.getLatestDriverInBusByCarId(carId);
-                            String body = "Your student: "+student.getFirstName()+" is still on the bus.\nPlease contact "+driver.getFirstName()+" (driver) "+driver.getTel();
+                            String body = "Your student: " + student.getFirstName() + " is still on the bus.\nPlease contact " + driver.getFirstName() + " (driver) " + driver.getTel();
                             ArrayList<Teacher> teacher = teacherHandler.getCurrentAllTeacherByCarId(carId);
-                            for(Teacher it: teacher){
-                                body +="\n"+it.getFirstName()+"(teacher) "+it.getTel();
+                            for (Teacher it : teacher) {
+                                body += "\n" + it.getFirstName() + "(teacher) " + it.getTel();
                             }
                             notificationForm.setBody(body);
                             notificationMessage.setNotification(notificationForm);
@@ -157,6 +169,7 @@ public class PositionController {
                             //set alarm here
                         }
                     }
+                }
                 }
             }
         }
@@ -195,7 +208,7 @@ public class PositionController {
             homeLng = school.getLongitude();
         }
         double dist = positionHandler.haverSineDistance(latitude,longitude,homeLat,homeLng);
-        if(dist >= 100){
+        if(dist >= 300 && isStudent){
             isInBus = IsInBus.TEMP;
         }
         result.put("inBus",positionHandler.getOnOrOffBus(carId, personId, latitude, longitude, isStudent, isInBus));
@@ -284,6 +297,12 @@ public class PositionController {
     ) {
 
         Bus checkBus = busHandler.getCurrentBusCarIdByStudentId(personId);
+        if(positionPersistent.isInBus(personId) == IsInBus.NO){
+            JSONObject result = new JSONObject();
+            result.put("time", "-1");
+            result.put("distance", "-1");
+            return result.toString();
+        }
         if(checkBus != null) {
             int carId = checkBus.getCarId();
             Route route = busHandler.getBusRoutinelyUsedRoute(carId);

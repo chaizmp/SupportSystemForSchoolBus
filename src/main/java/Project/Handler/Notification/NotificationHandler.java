@@ -78,10 +78,11 @@ public class NotificationHandler {
         NotificationMessage notificationMessage = new NotificationMessage();
         NotificationForm notificationForm = new NotificationForm();
         notificationForm.setTitle("Arrival");
+        Student student = studentHandler.getStudentByPersonId(personId);
         if(isHome) {
-            notificationForm.setBody("The Bus Number " + carNumber + " just arrived at your student home.");
+            notificationForm.setBody("("+student.getFirstName()+" "+student.getSurName()+") The Bus Number " + carNumber + " just arrived at your student home.");
         }else{
-            notificationForm.setBody("The Bus Number " + carNumber + " just arrived at the school.");
+            notificationForm.setBody("("+student.getFirstName()+" "+student.getSurName()+") The Bus Number " + carNumber + " just arrived at the school.");
         }
         notificationMessage.setNotification(notificationForm);
         for (Person it : userRelatedToStudent) {
@@ -93,6 +94,10 @@ public class NotificationHandler {
     }
 
     public ArrayList<String> notifyBus(ArrayList<Integer> personIds, String carNumber, String message){
+        System.out.println("NOTI FY all");
+        for(int it: personIds){
+            System.out.println(it);
+        }
         ArrayList<String> responseList = new ArrayList<>();
         NotificationMessage notificationMessage = new NotificationMessage();
         NotificationForm notificationForm = new NotificationForm();

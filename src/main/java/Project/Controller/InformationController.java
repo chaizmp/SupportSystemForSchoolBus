@@ -286,6 +286,7 @@ public class InformationController {
             @RequestParam(value = "personId") int personId,
             @RequestParam(value = "token") String token
     ) {
+        System.out.println(personId+": "+token );
         return personHandler.updateFireBaseToken(personId, token);
     }
 

@@ -340,7 +340,7 @@ public class PositionHandler {
         }else{
             while (itr.hasNext()) {
                 Student stu = itr.next();
-                if (stu.getInBus() != IsInBus.NO) {
+                if (stu.getInBus() == IsInBus.NO) {
                     itr.remove();
                 }
             }
@@ -360,7 +360,7 @@ public class PositionHandler {
                                 i = routeLatitudes.size();
                                 j = students.size();
                                 int previousStudentHomeIndex = getPreviousStudentHomeIndex(minIndexToNextCheckPoint, route);
-
+                                System.out.println(previousStudentHomeIndex);
                                 double min = 0;
                                 double dist;
                                 int minIndex = -1;
@@ -395,6 +395,7 @@ public class PositionHandler {
                         double min = 0;
                         double dist;
                         int minIndex = -1;
+                        System.out.println(previousStudentHomeIndex);
                         for(int k = previousStudentHomeIndex; k<= minIndexToNextCheckPoint; k++){
                             dist = haverSineDistance(busLatitude, busLongitude, route.getLatitudes().get(k), route.getLongitudes().get(k));
                             if(dist < min || k == previousStudentHomeIndex){
@@ -404,8 +405,6 @@ public class PositionHandler {
                         }
                         minDistanceToNextCheckPoint = min;
                         minIndexToNextCheckPoint = minIndex;
-
-
                         //minDistanceToNextCheckPoint = haverSineDistance(busLatitude, busLongitude, routeLatitudes.get(routeLatitudes.size()-1), routeLongitudes.get(routeLatitudes.size()-1));
                         //minIndexToNextCheckPoint = routeLatitudes.size()-1;
                         i = routeLatitudes.size();
@@ -418,6 +417,12 @@ public class PositionHandler {
             } else {
                 start = index;
                 end = minIndexToNextCheckPoint;
+            }
+            if(minIndexToNextCheckPoint == -1){
+                JSONObject result = new JSONObject();
+                result.put("time", -1);
+                result.put("distance", -1);
+                return result.toString();
             }
             System.out.println("Route Index :"+minIndexToNextCheckPoint);
             sumOfDistance = minDistanceToNextCheckPoint;
